@@ -15,7 +15,7 @@
 //  A* educated guess to find the best path from point A to point B
 //  A* formula is f(n) = g(n) + h(n)
 
-const GRIDSIZE = 15;
+const GRIDSIZE = 50;
 let grid;
 
 let cellsToCheck;
@@ -28,13 +28,6 @@ let currentValue;
 
 let screenState = "startScreen";
 let endScreenDisplay;
-
-let level, levelPath;
-
-function preload() {
-  level = loadStrings("assets/level1.txt");
-  levelPath = loadStrings("assets/level1path.txt");
-}
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -50,7 +43,7 @@ function setup() {
   startingPoint = grid[0][0];
   startingPoint.wall = false;
   // endingPoint point
-  endingPoint = grid[14][0];
+  endingPoint = grid[24][0];
   endingPoint.wall = false;
 
   cellsToCheck.push(startingPoint);
@@ -210,14 +203,14 @@ function displayPath() {
     }
   }
   // Display the fastest path from startingPoint to finish
-  // for (let x = 0; x < cellThatHaveBeenChecked.length; x++) {
-  //   cellThatHaveBeenChecked[x].displayGrid(color(231, 13, 143));
+  for (let x = 0; x < cellThatHaveBeenChecked.length; x++) {
+    cellThatHaveBeenChecked[x].displayGrid(color(231, 13, 143));
 
-  // }
+  }
   // change the color of the cells that have already been checked
-  // for (let x = 0; x < cellsToCheck.length; x++) {
-  //   cellsToCheck[x].displayGrid(color(185, 19, 231));
-  // }
+  for (let x = 0; x < cellsToCheck.length; x++) {
+    cellsToCheck[x].displayGrid(color(185, 19, 231));
+  }
 
   // find the path
   path = [];
