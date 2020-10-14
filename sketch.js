@@ -36,7 +36,7 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(1180, 757);
+  createCanvas(1200, 757);
  
   cellsToCheck = [];
   cellThatHaveBeenChecked = [];
