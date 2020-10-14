@@ -16,7 +16,6 @@
 //  A* formula is f(n) = g(n) + h(n)
 
 const GRIDSIZE = 15;
-let grid;
 
 let cellsToCheck;
 let cellThatHaveBeenChecked;
@@ -26,7 +25,7 @@ let cellWidth, cellHeight;
 let path;
 let currentValue;
 
-let screenState = "startScreen";
+let screenState = "gameScreen";
 let endScreenDisplay;
 
 let level, levelPath;
@@ -37,9 +36,8 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
-
-  grid = new Array(GRIDSIZE); 
+  createCanvas(1180, 757);
+ 
   cellsToCheck = [];
   cellThatHaveBeenChecked = [];
   path = [];
@@ -47,13 +45,14 @@ function setup() {
   generateGrid();
 
   // startingPoint point
-  startingPoint = grid[0][0];
+  startingPoint = level[0][4];
   startingPoint.wall = false;
   // endingPoint point
-  endingPoint = grid[14][0];
+  endingPoint = level[13][13];
   endingPoint.wall = false;
 
   cellsToCheck.push(startingPoint);
+  notAWall();
 }
 
 function draw() {
@@ -88,60 +87,72 @@ class Pathfinder {
     this.previous = undefined;
     this.wall = false;
 
-    if (random(1) < 0.3) {
-      this.wall = true;
-    } 
+
+    for (let x = 0; x < GRIDSIZE; x++) {
+      for (let y = 0; y < GRIDSIZE; y++) {
+        if (level[x][y] !== 0) {
+          this.wall = true;
+        }
+      }
+    }
   }
-  // create and color rects to use when display grid
+  // create and color rects to use when display level
   displayGrid(color) {
     fill(color);
     if (this.wall) {
-      fill(0);
+      fill(0, 255, 0);
     }
     rect(this.x * cellWidth, this.y * cellHeight, cellWidth - 1, cellHeight - 1);
   }
 
-  checkNeighbors(grid) {
+  checkNeighbors(level) {
     let x = this.x;
     let y = this. y;
     // Check neighbors
     if (x < GRIDSIZE - 1) {
-      this.neighborsToCheck.push(grid[x + 1] [y]);
+      this.neighborsToCheck.push(level[x + 1] [y]);
     }
 
     if (x > 0) {
-      this.neighborsToCheck.push(grid[x - 1] [y]);
+      this.neighborsToCheck.push(level[x - 1] [y]);
     }
 
     if (y < GRIDSIZE - 1) {
-      this.neighborsToCheck.push(grid[x] [y + 1]);
+      this.neighborsToCheck.push(level[x] [y + 1]);
     }
     
     if (y > 0) {
-      this.neighborsToCheck.push(grid[x] [y - 1]);
+      this.neighborsToCheck.push(level[x] [y - 1]);
     }
   }
 }
 
-// A grid
+// A level
 function generateGrid() {
   cellWidth = width / GRIDSIZE;
   cellHeight = height / GRIDSIZE;
 
-  // making an 2D array
-  for (let x = 0; x < GRIDSIZE; x++) {
-    grid[x] = new Array(GRIDSIZE);
+  // convert Level into 2d array
+  for (let i=0; i<level.length; i++) {
+    level[i] = level[i].split(",");
   }
 
-  for (let x = 0; x < GRIDSIZE; x++) {
-    for (let y = 0; y < GRIDSIZE; y++) {
-      grid[x][y] = new Pathfinder (x, y);
+  //loop through the whole 2d array, and turn everything to numbers
+  for (let x = 0; x <GRIDSIZE; x++) {
+    for (let y = 0; y <GRIDSIZE; y++) {
+      level[x][y] = int(level[x][y]);
     }
   }
 
   for (let x = 0; x < GRIDSIZE; x++) {
     for (let y = 0; y < GRIDSIZE; y++) {
-      grid[x][y].checkNeighbors(grid);
+      level[x][y] = new Pathfinder (x, y);
+    }
+  }
+
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      level[x][y].checkNeighbors(level);
     }
   }
 
@@ -163,7 +174,9 @@ function findPath () {
 
     if (currentValue === endingPoint) {
       endScreenDisplay = "Solution Found";
-      screenState = "endScreen";
+      console.log(endScreenDisplay);
+      noLoop();
+      //screenState = "endScreen";
     }
 
     // remove the value from the cellsToCheck and push it into the cellThatHaveBeenChecked
@@ -198,26 +211,28 @@ function findPath () {
   // No Solution
   else {
     endScreenDisplay = "No Solution Found";
-    screenState = "endScreen";
+    console.log(endScreenDisplay);
+    noLoop();
+    //screenState = "endScreen";
   }
 }
 
 function displayPath() {
-// display grid
+// display level
   for (let x = 0; x < GRIDSIZE; x++) {
     for (let y = 0; y < GRIDSIZE; y++) {
-      grid[x][y].displayGrid(color(230,230,230));
+      level[x][y].displayGrid(color(230,230,230));
     }
   }
-  // Display the fastest path from startingPoint to finish
-  // for (let x = 0; x < cellThatHaveBeenChecked.length; x++) {
-  //   cellThatHaveBeenChecked[x].displayGrid(color(231, 13, 143));
+  //Display the fastest path from startingPoint to finish
+  for (let x = 0; x < cellThatHaveBeenChecked.length; x++) {
+    cellThatHaveBeenChecked[x].displayGrid(color(231, 13, 143));
 
-  // }
-  // change the color of the cells that have already been checked
-  // for (let x = 0; x < cellsToCheck.length; x++) {
-  //   cellsToCheck[x].displayGrid(color(185, 19, 231));
-  // }
+  }
+  //change the color of the cells that have already been checked
+  for (let x = 0; x < cellsToCheck.length; x++) {
+    cellsToCheck[x].displayGrid(color(185, 19, 231));
+  }
 
   // find the path
   path = [];
@@ -288,4 +303,47 @@ function keyPressed() {
     setup();
     screenState = "gameScreen";
   }
+}
+
+function notAWall() {
+  level[1][4].wall = false;
+  level[1][5].wall = false;
+  level[2][5].wall = false;
+  level[3][5].wall = false;
+  level[4][5].wall = false;
+  level[5][5].wall = false;
+  level[5][6].wall = false;
+  level[5][7].wall = false;
+  level[5][8].wall = false;
+  level[5][9].wall = false;
+  level[5][10].wall = false;
+  level[6][10].wall = false;
+  level[7][10].wall = false;
+  level[7][9].wall = false;
+  level[7][8].wall = false;
+  level[7][7].wall = false;
+  level[7][6].wall = false;
+  level[7][5].wall = false;
+  level[7][4].wall = false;
+  level[7][3].wall = false;
+  level[7][2].wall = false;
+  level[7][1].wall = false;
+  level[8][1].wall = false;
+  level[9][1].wall = false;
+  level[10][1].wall = false;
+  level[11][1].wall = false;
+  level[12][1].wall = false;
+  level[12][2].wall = false;
+  level[12][3].wall = false;
+  level[12][4].wall = false;
+  level[12][5].wall = false;
+  level[12][6].wall = false;
+  level[12][7].wall = false;
+  level[12][8].wall = false;
+  level[12][9].wall = false;
+  level[12][10].wall = false;
+  level[12][11].wall = false;
+  level[12][12].wall = false;
+  level[12][13].wall = false;
+  level[13][13].wall = false;
 }
