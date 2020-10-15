@@ -11,8 +11,10 @@ WE have made a similar version of the Lord's mobile Kingdom game. But we have pu
 - show a health bar for the enemies
 - be able to place guns at different spots that shot targets
 - have a starting and a ending page
-- add different levels
+- keep track of the score
+- keep track of the money and be able to use it to buy guns
 - add different speeds and the numbers of enemies
+- 
 
 ## Nice to have list
 - animation of guns and enemies

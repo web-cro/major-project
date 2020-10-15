@@ -25,10 +25,13 @@ let cellWidth, cellHeight;
 let path;
 let currentValue;
 
-let screenState = "gameScreen";
+let screenState = "startScreen";
 let endScreenDisplay;
 
 let level, levelPath;
+
+let playerX = 0;
+let playerY = 0;
 
 function preload() {
   level = loadStrings("assets/level1.txt");
@@ -36,7 +39,7 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(1200, 757);
+  createCanvas(windowWidth, windowHeight);
  
   cellsToCheck = [];
   cellThatHaveBeenChecked = [];
@@ -45,18 +48,30 @@ function setup() {
   generateGrid();
 
   // startingPoint point
-  startingPoint = level[0][4];
+  startingPoint = level[0][0];
   startingPoint.wall = false;
   // endingPoint point
-  endingPoint = level[13][13];
+  endingPoint = level[14][10];
   endingPoint.wall = false;
 
   cellsToCheck.push(startingPoint);
-  notAWall();
+
+  //place player
+  levelPath[playerX][playerY] = 2;
 }
 
 function draw() {
   runGame();
+
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      if (levelPath[x][y] !== 0 && levelPath[x][y] !== 2) {
+        level[x][y].wall = true;
+      }
+    }
+  }
+
+  movePlayer();
 }
 
 // look through the array and remove a cells that we have already visted
@@ -86,15 +101,6 @@ class Pathfinder {
     this.neighborsToCheck = [];
     this.previous = undefined;
     this.wall = false;
-
-
-    for (let x = 0; x < GRIDSIZE; x++) {
-      for (let y = 0; y < GRIDSIZE; y++) {
-        if (level[x][y] !== 0) {
-          this.wall = true;
-        }
-      }
-    }
   }
   // create and color rects to use when display level
   displayGrid(color) {
@@ -127,37 +133,7 @@ class Pathfinder {
   }
 }
 
-// A level
-function generateGrid() {
-  cellWidth = width / GRIDSIZE;
-  cellHeight = height / GRIDSIZE;
 
-  // convert Level into 2d array
-  for (let i=0; i<level.length; i++) {
-    level[i] = level[i].split(",");
-  }
-
-  //loop through the whole 2d array, and turn everything to numbers
-  for (let x = 0; x <GRIDSIZE; x++) {
-    for (let y = 0; y <GRIDSIZE; y++) {
-      level[x][y] = int(level[x][y]);
-    }
-  }
-
-  for (let x = 0; x < GRIDSIZE; x++) {
-    for (let y = 0; y < GRIDSIZE; y++) {
-      level[x][y] = new Pathfinder (x, y);
-    }
-  }
-
-  for (let x = 0; x < GRIDSIZE; x++) {
-    for (let y = 0; y < GRIDSIZE; y++) {
-      level[x][y].checkNeighbors(level);
-    }
-  }
-
-    
-}
 
 function findPath () {
 
@@ -224,15 +200,23 @@ function displayPath() {
       level[x][y].displayGrid(color(230,230,230));
     }
   }
+  // display Player 
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      if (levelPath[x][y] === 2) {
+        level[x][y].displayGrid(color("red"));
+      }
+    }
+  }
   //Display the fastest path from startingPoint to finish
-  for (let x = 0; x < cellThatHaveBeenChecked.length; x++) {
-    cellThatHaveBeenChecked[x].displayGrid(color(231, 13, 143));
+  // for (let x = 0; x < cellThatHaveBeenChecked.length; x++) {
+  //   cellThatHaveBeenChecked[x].displayGrid(color(231, 13, 143));
+  // }
 
-  }
   //change the color of the cells that have already been checked
-  for (let x = 0; x < cellsToCheck.length; x++) {
-    cellsToCheck[x].displayGrid(color(185, 19, 231));
-  }
+  // for (let x = 0; x < cellsToCheck.length; x++) {
+  //   cellsToCheck[x].displayGrid(color(185, 19, 231));
+  // }
 
   // find the path
   path = [];
@@ -241,12 +225,56 @@ function displayPath() {
     path.push(value.previous);
     value = value.previous;
   }
-  // display best path
-  if (currentValue === endingPoint){
-    for (let x = 0; x < path.length; x++) {
-      path[x].displayGrid(color(0, 0, 255));
+  //display best path
+  // if (currentValue === endingPoint){
+  //   for (let x = 0; x < path.length; x++) {
+  //     path[x].displayGrid(color(0, 0, 255));
+  //   }
+  // }
+}
+
+// A level
+function generateGrid() {
+  cellWidth = width / GRIDSIZE;
+  cellHeight = height / GRIDSIZE;
+
+  // convert Level into 2d array
+  for (let i=0; i<level.length; i++) {
+    level[i] = level[i].split(",");
+  }
+
+  //loop through the whole 2d array, and turn everything to numbers
+  for (let x = 0; x <GRIDSIZE; x++) {
+    for (let y = 0; y <GRIDSIZE; y++) {
+      level[x][y] = int(level[x][y]);
     }
   }
+
+  // convert Level Path into 2d array
+  for (let i=0; i<levelPath.length; i++) {
+    levelPath[i] = levelPath[i].split(",");
+  }
+
+  //loop through the whole 2d array, and turn everything to numbers
+  for (let y = 0; y<GRIDSIZE; y++) {
+    for (let x = 0; x<GRIDSIZE; x++) {
+      levelPath[y][x] = int(levelPath[y][x]);
+    }
+  }
+
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      level[x][y] = new Pathfinder (x, y);
+    }
+  }
+
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      level[x][y].checkNeighbors(level);
+    }
+  }
+
+    
 }
 
 // controls what the screen the user sees
@@ -305,45 +333,41 @@ function keyPressed() {
   }
 }
 
-function notAWall() {
-  level[1][4].wall = false;
-  level[1][5].wall = false;
-  level[2][5].wall = false;
-  level[3][5].wall = false;
-  level[4][5].wall = false;
-  level[5][5].wall = false;
-  level[5][6].wall = false;
-  level[5][7].wall = false;
-  level[5][8].wall = false;
-  level[5][9].wall = false;
-  level[5][10].wall = false;
-  level[6][10].wall = false;
-  level[7][10].wall = false;
-  level[7][9].wall = false;
-  level[7][8].wall = false;
-  level[7][7].wall = false;
-  level[7][6].wall = false;
-  level[7][5].wall = false;
-  level[7][4].wall = false;
-  level[7][3].wall = false;
-  level[7][2].wall = false;
-  level[7][1].wall = false;
-  level[8][1].wall = false;
-  level[9][1].wall = false;
-  level[10][1].wall = false;
-  level[11][1].wall = false;
-  level[12][1].wall = false;
-  level[12][2].wall = false;
-  level[12][3].wall = false;
-  level[12][4].wall = false;
-  level[12][5].wall = false;
-  level[12][6].wall = false;
-  level[12][7].wall = false;
-  level[12][8].wall = false;
-  level[12][9].wall = false;
-  level[12][10].wall = false;
-  level[12][11].wall = false;
-  level[12][12].wall = false;
-  level[12][13].wall = false;
-  level[13][13].wall = false;
+// function movePlayer() {
+//   //move up
+//   for (let y = 0; y < GRIDSIZE; y++) {
+//     for (let x = 0; x < GRIDSIZE; x++) {
+//       if (levelPath[playerY - 1][playerX] === 0) {
+//         level[playerY][playerX] = 2;
+//         playerY -= 1;
+//         level[playerY][playerX] = levelPath[playerY][playerX];
+//       }
+//       //move down
+//       else if (levelPath[playerY + 1][playerX] === 3) {
+//         level[playerY][playerX] = 0;
+//         playerY += 1;
+//         level[playerY][playerX] = levelPath[playerY][playerX];
+//       }
+    
+//       //move right
+//       else if (levelPath[playerY][playerX + 1] === 3) {
+//         level[playerY][playerX] = 0;
+//         playerX += 1;
+//         level[playerY][playerX] = levelPath[playerY][playerX];
+//       }
+      
+//       //move left
+//       else if (levelPath[playerY][playerX - 1] === 3) {
+//         level[playerY][playerX] = 0; //resetting players current location to white
+//         playerX -= 1;
+//         level[playerY][playerX] = levelPath[playerY][playerX]; //set new location to red
+//       }
+//     }
+//   }
+// }
+
+function movePlayer() {
+  for (let i = 1; i < path.length; i++) {
+    playerY = path[path.length- i].y;
+  }
 }
