@@ -30,8 +30,8 @@ let endScreenDisplay;
 
 let level, levelPath;
 
-let playerX = 0;
-let playerY = 0;
+let enemyX = 0;
+let enemyY = 0;
 
 function preload() {
   level = loadStrings("assets/level1.txt");
@@ -56,8 +56,8 @@ function setup() {
 
   cellsToCheck.push(startingPoint);
 
-  //place player
-  levelPath[playerX][playerY] = 2;
+  //place enemyReachedEnd,enemy
+  levelPath[enemyX][enemyY] = 2;
 }
 
 function draw() {
@@ -71,7 +71,8 @@ function draw() {
     }
   }
 
-  movePlayer();
+  moveEnemy();
+  enemyReachedEnd();
 }
 
 // look through the array and remove a cells that we have already visted
@@ -200,7 +201,7 @@ function displayPath() {
       level[x][y].displayGrid(color(230,230,230));
     }
   }
-  // display Player 
+  // display enemyReachedEnd,enemy 
   for (let x = 0; x < GRIDSIZE; x++) {
     for (let y = 0; y < GRIDSIZE; y++) {
       if (levelPath[x][y] === 2) {
@@ -238,26 +239,26 @@ function generateGrid() {
   cellWidth = width / GRIDSIZE;
   cellHeight = height / GRIDSIZE;
 
-  // convert Level into 2d array
-  for (let i=0; i<level.length; i++) {
+  // convert Level into 2D array
+  for (let i = 0; i < level.length; i++) {
     level[i] = level[i].split(",");
   }
 
-  //loop through the whole 2d array, and turn everything to numbers
-  for (let x = 0; x <GRIDSIZE; x++) {
-    for (let y = 0; y <GRIDSIZE; y++) {
+  //loop through the whole 2D array, and turn everything to numbers
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
       level[x][y] = int(level[x][y]);
     }
   }
 
-  // convert Level Path into 2d array
-  for (let i=0; i<levelPath.length; i++) {
+  // convert Level Path into 2D array
+  for (let i = 0; i < levelPath.length; i++) {
     levelPath[i] = levelPath[i].split(",");
   }
 
-  //loop through the whole 2d array, and turn everything to numbers
-  for (let y = 0; y<GRIDSIZE; y++) {
-    for (let x = 0; x<GRIDSIZE; x++) {
+  //loop through the whole 2D array, and turn everything to numbers
+  for (let y = 0; y < GRIDSIZE; y++) {
+    for (let x = 0; x < GRIDSIZE; x++) {
       levelPath[y][x] = int(levelPath[y][x]);
     }
   }
@@ -333,41 +334,48 @@ function keyPressed() {
   }
 }
 
-// function movePlayer() {
+// function moveenemyReachedEnd,enemy() {
 //   //move up
 //   for (let y = 0; y < GRIDSIZE; y++) {
 //     for (let x = 0; x < GRIDSIZE; x++) {
-//       if (levelPath[playerY - 1][playerX] === 0) {
-//         level[playerY][playerX] = 2;
-//         playerY -= 1;
-//         level[playerY][playerX] = levelPath[playerY][playerX];
+//       if (levelPath[enemyY - 1][enemyX] === 0) {
+//         level[enemyY][enemyX] = 2;
+//         enemyY -= 1;
+//         level[enemyY][enemyX] = levelPath[enemyY][enemyX];
 //       }
 //       //move down
-//       else if (levelPath[playerY + 1][playerX] === 3) {
-//         level[playerY][playerX] = 0;
-//         playerY += 1;
-//         level[playerY][playerX] = levelPath[playerY][playerX];
+//       else if (levelPath[enemyY + 1][enemyX] === 3) {
+//         level[enemyY][enemyX] = 0;
+//         enemyY += 1;
+//         level[enemyY][enemyX] = levelPath[enemyY][enemyX];
 //       }
     
 //       //move right
-//       else if (levelPath[playerY][playerX + 1] === 3) {
-//         level[playerY][playerX] = 0;
-//         playerX += 1;
-//         level[playerY][playerX] = levelPath[playerY][playerX];
+//       else if (levelPath[enemyY][enemyX + 1] === 3) {
+//         level[enemyY][enemyX] = 0;
+//         enemyX += 1;
+//         level[enemyY][enemyX] = levelPath[enemyY][enemyX];
 //       }
       
 //       //move left
-//       else if (levelPath[playerY][playerX - 1] === 3) {
-//         level[playerY][playerX] = 0; //resetting players current location to white
-//         playerX -= 1;
-//         level[playerY][playerX] = levelPath[playerY][playerX]; //set new location to red
+//       else if (levelPath[enemyY][enemyX - 1] === 3) {
+//         level[enemyY][enemyX] = 0; //resetting enemyReachedEnd,enemys current location to white
+//         enemyX -= 1;
+//         level[enemyY][enemyX] = levelPath[enemyY][enemyX]; //set new location to red
 //       }
 //     }
 //   }
 // }
 
-function movePlayer() {
-  for (let i = 1; i < path.length; i++) {
-    playerY = path[path.length- i].y;
+function moveEnemy() {
+  for (let i = 1; i <= path.length; i++) {
+    enemyY = path[path.length - i].y;
+    enemyX = path[path.length - i].x;
+  }
+}
+
+function enemyReachedEnd() {
+  if (enemyX === endingPoint && enemyY === endingPoint) {
+    screenState = "endScreen";
   }
 }
