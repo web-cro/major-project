@@ -58,14 +58,7 @@ function setup() {
 
   //place enemyReachedEnd,enemy
   levelPath[enemyX][enemyY] = 2;
-<<<<<<< HEAD
-<<<<<<< HEAD
-
   window.setInterval(moveEnemy, 5000);
-=======
->>>>>>> 42bc4eb0cb9c9690f8fa9c71a12b58859105d13c
-=======
->>>>>>> 42bc4eb0cb9c9690f8fa9c71a12b58859105d13c
 }
 
 function draw() {
@@ -78,17 +71,10 @@ function draw() {
       }
     }
   }
-<<<<<<< HEAD
-  // moveEnemy();
-  
-=======
 
-  moveEnemy();
-  enemyReachedEnd();
-<<<<<<< HEAD
->>>>>>> 42bc4eb0cb9c9690f8fa9c71a12b58859105d13c
-=======
->>>>>>> 42bc4eb0cb9c9690f8fa9c71a12b58859105d13c
+
+  // moveEnemy();
+  // enemyReachedEnd();
 }
 
 // look through the array and remove a cells that we have already visted
@@ -385,28 +371,19 @@ function keyPressed() {
 
 function moveEnemy() {
   for (let i = 1; i <= path.length; i++) {
-<<<<<<< HEAD
-<<<<<<< HEAD
+
     levelPath[enemyX][enemyY] = 0;
     enemyY = path[path.length - i].y;
     enemyX = path[path.length - i].x;
     levelPath[enemyX][enemyY] = 2;
-=======
-=======
->>>>>>> 42bc4eb0cb9c9690f8fa9c71a12b58859105d13c
-    enemyY = path[path.length - i].y;
-    enemyX = path[path.length - i].x;
   }
 }
+
 
 function enemyReachedEnd() {
   if (enemyX === endingPoint && enemyY === endingPoint) {
     screenState = "endScreen";
-<<<<<<< HEAD
->>>>>>> 42bc4eb0cb9c9690f8fa9c71a12b58859105d13c
-=======
->>>>>>> 42bc4eb0cb9c9690f8fa9c71a12b58859105d13c
-  }
+
   console.log("moved");
 }
 
