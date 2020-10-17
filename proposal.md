@@ -10,7 +10,6 @@ WE have made a similar version of the Lord's mobile Kingdom game. But we have pu
 - be able make multipal targets
 - show a health bar for the enemies
 - be able to place guns at different spots that shot targets
-
 - keep track of the score
 - add different speeds and the numbers of enemies
 

@@ -25,13 +25,13 @@ let cellWidth, cellHeight;
 let path;
 let currentValue;
 
-let screenState = "startScreen";
 let endScreenDisplay;
 
 let level, levelPath;
 
 let enemyX = 0;
 let enemyY = 0;
+let enemies;
 
 function preload() {
   level = loadStrings("assets/level1.txt");
@@ -56,25 +56,28 @@ function setup() {
 
   cellsToCheck.push(startingPoint);
 
+  enemies = new Enemy (enemyX, enemyY)
+
   //place enemyReachedEnd,enemy
-  levelPath[enemyX][enemyY] = 2;
-  window.setInterval(moveEnemy, 5000);
+  //window.setInterval(enemies.moveEnemies, 5000);
 }
 
 function draw() {
-  runGame();
 
+  background(0);
+  findPath();
+  displayPath();
+  
+  // Make wall where need
   for (let x = 0; x < GRIDSIZE; x++) {
     for (let y = 0; y < GRIDSIZE; y++) {
-      if (levelPath[x][y] !== 0 && levelPath[x][y] !== 2) {
+      if (levelPath[x][y] === 1) {
         level[x][y].wall = true;
       }
     }
   }
 
-
-  // moveEnemy();
-  // enemyReachedEnd();
+  enemies.display();
 }
 
 // look through the array and remove a cells that we have already visted
@@ -203,14 +206,15 @@ function displayPath() {
       level[x][y].displayGrid(color(230,230,230));
     }
   }
-  // display enemyReachedEnd,enemy 
+
   for (let x = 0; x < GRIDSIZE; x++) {
     for (let y = 0; y < GRIDSIZE; y++) {
-      if (levelPath[x][y] === 2) {
+      if (levelPath[x][y] === 3) {
         level[x][y].displayGrid(color("red"));
       }
     }
   }
+
   // //Display the fastest path from startingPoint to finish
   // for (let x = 0; x < cellThatHaveBeenChecked.length; x++) {
   //   cellThatHaveBeenChecked[x].displayGrid(color(231, 13, 143));
@@ -275,120 +279,39 @@ function generateGrid() {
     for (let y = 0; y < GRIDSIZE; y++) {
       level[x][y].checkNeighbors(level);
     }
-  }
-
-    
-}
-
-// controls what the screen the user sees
-function runGame() {
-    
-  if (screenState === "startScreen") {
-    background(0);
-    showStartScreen();
   } 
-  
-  else if (screenState === "gameScreen") {
-    background(0);
-    findPath();
-    displayPath();
-  } 
-  
-  else if (screenState === "endScreen") {
-    background("white");
-    gameOver();
+}
+
+class Enemy {
+  constructor (x, y) {
+    this.startX = x;
+    this.startY = y;
+    this.color = color(random (255), random (255), random (255));
+
+    this.x = x;
+    this.y = y;
+  }
+
+  display() {
+    levelPath[this.startX][this.startY] = 2;
+
+      // display enemyReachedEnd,enemy 
+    for (let x = 0; x < GRIDSIZE; x++) {
+      for (let y = 0; y < GRIDSIZE; y++) {
+        if (levelPath[x][y] === 2) {
+          level[x][y].displayGrid(color(this.color));
+        }
+      }
+    }
+  }
+
+  moveEnemies() {
+    for (let i = 1; i <= path.length; i++) {
+      levelPath[this.x][this.y] = 0;
+      this.x = path[path.length - i].y;
+      this.y = path[path.length - i].x;
+      levelPath[this.x][this.y] = 2;
+      console.log("moved");
+    }
   }
 }
-
-// controls the Start screen text, its style, location, and size
-function showStartScreen() {
-  background("white");
-  textAlign(CENTER);
-  ///textStyle(BOLDITALIC);
-  textSize(18);
-  text("Start Screen", width / 2, height / 2);
-  text("Click Anywhere To Start", width / 2, height / 2 + 25);
-}
-
-// controls the game over screen text, its style, location, and size
-function gameOver() {
-    
-  textAlign(CENTER);
-  //textStyle(BOLDITALIC);
-  textSize(18);
-  fill("Black");
-  text(endScreenDisplay, width / 2, height / 2);
-  text("Press R to restart Game", width / 2, height / 2 + 25);
-}
-
-// change startScreen to gameScreen when mouse Clicked
-function mousePressed() {
-  if (screenState === "startScreen") {
-    screenState = "gameScreen";
-  }
-}
-
-// restart the game
-function keyPressed() {
-  if (key === "r") {
-    setup();
-    screenState = "gameScreen";
-  }
-}
-
-// function moveenemyReachedEnd,enemy() {
-//   //move up
-//   for (let y = 0; y < GRIDSIZE; y++) {
-//     for (let x = 0; x < GRIDSIZE; x++) {
-//       if (levelPath[enemyY - 1][enemyX] === 0) {
-//         level[enemyY][enemyX] = 2;
-//         enemyY -= 1;
-//         level[enemyY][enemyX] = levelPath[enemyY][enemyX];
-//       }
-//       //move down
-//       else if (levelPath[enemyY + 1][enemyX] === 3) {
-//         level[enemyY][enemyX] = 0;
-//         enemyY += 1;
-//         level[enemyY][enemyX] = levelPath[enemyY][enemyX];
-//       }
-    
-//       //move right
-//       else if (levelPath[enemyY][enemyX + 1] === 3) {
-//         level[enemyY][enemyX] = 0;
-//         enemyX += 1;
-//         level[enemyY][enemyX] = levelPath[enemyY][enemyX];
-//       }
-      
-//       //move left
-//       else if (levelPath[enemyY][enemyX - 1] === 3) {
-//         level[enemyY][enemyX] = 0; //resetting enemyReachedEnd,enemys current location to white
-//         enemyX -= 1;
-//         level[enemyY][enemyX] = levelPath[enemyY][enemyX]; //set new location to red
-//       }
-//     }
-//   }
-// }
-
-function moveEnemy() {
-  for (let i = 1; i <= path.length; i++) {
-
-    levelPath[enemyX][enemyY] = 0;
-    enemyY = path[path.length - i].y;
-    enemyX = path[path.length - i].x;
-    levelPath[enemyX][enemyY] = 2;
-  }
-}
-
-
-function enemyReachedEnd() {
-  if (enemyX === endingPoint && enemyY === endingPoint) {
-    screenState = "endScreen";
-
-  console.log("moved");
-}
-
-// function enemyReachedEnd() {
-//   if (enemyX === endingPoint && enemyY === endingPoint) {
-//     screenState = "endScreen";
-//   }
-// }
