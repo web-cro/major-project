@@ -15,7 +15,7 @@
 //  A* educated guess to find the best path from point A to point B
 //  A* formula is f(n) = g(n) + h(n)
 
-const GRIDSIZE = 15;
+const GRIDSIZE = 16;
 
 let cellsToCheck;
 let cellThatHaveBeenChecked;
@@ -73,6 +73,14 @@ function draw() {
     for (let y = 0; y < GRIDSIZE; y++) {
       if (levelPath[x][y] === 1) {
         level[x][y].wall = true;
+      }
+    }
+  }
+
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      if (levelPath[x][y] === 4) {
+        level[x][y].displayGrid(color("blue"));
       }
     }
   }
@@ -314,4 +322,16 @@ class Enemy {
       console.log("moved");
     }
   }
+}
+
+function mouseClicked() {
+  let cellX = floor(mouseX / cellWidth);
+  let cellY = floor(mouseY / cellHeight);
+
+  if (cellX >= 0 && cellX < GRIDSIZE && cellY >= 0 && cellY < GRIDSIZE) {
+    if (levelPath === 1){
+      levelPath[cellX][cellY] = 4;
+    }
+  }
+  console.log(cellX, cellY)
 }
