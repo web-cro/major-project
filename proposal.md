@@ -6,7 +6,7 @@ WE have made a similar version of the Lord's mobile Kingdom game. But we have pu
 
 ## Need to Have List
 
-- have a pathfider for the enemies
+- have a pathfinder for the enemies
 - be able make multipal targets
 - show a health bar for the enemies
 - be able to place guns at different spots that shot targets
@@ -21,3 +21,8 @@ WE have made a similar version of the Lord's mobile Kingdom game. But we have pu
 - able to choose different guns
 - able to shut off the sound
 - some kind of sound effects
+
+
+<!-- to Do -->
+<!-- create a boolen for the pathfinder-->
+<!-- make sure the path[] is made before you start moving the enemy -->

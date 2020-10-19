@@ -33,6 +33,13 @@ let enemyX = 0;
 let enemyY = 0;
 let enemies;
 
+let canon;
+let canonXCordinate, canonYCordinate, canonWidth, canonHeight;
+
+let x, y, isDragging;
+
+let score = 0;
+
 function preload() {
   level = loadStrings("assets/level1.txt");
   levelPath = loadStrings("assets/level1path.txt");
@@ -56,10 +63,17 @@ function setup() {
 
   cellsToCheck.push(startingPoint);
 
-  enemies = new Enemy (enemyX, enemyY)
+  enemies = new Enemy (enemyX, enemyY);
 
   //place enemyReachedEnd,enemy
-  //window.setInterval(enemies.moveEnemies, 5000);
+  // window.setInterval(enemies.moveEnemies, 5000);
+
+  canon = loadImage("canon.jpg");
+  canonXCordinate = windowWidth - windowWidth/1.11;
+  canonYCordinate = windowHeight - windowHeight/1.82;
+  canonWidth = cellWidth*3;
+  canonHeight = cellHeight*3;
+  
 }
 
 function draw() {
@@ -76,16 +90,12 @@ function draw() {
       }
     }
   }
-
-  for (let x = 0; x < GRIDSIZE; x++) {
-    for (let y = 0; y < GRIDSIZE; y++) {
-      if (levelPath[x][y] === 4) {
-        level[x][y].displayGrid(color("blue"));
-      }
-    }
-  }
-
+  //move();
   enemies.display();
+  // enemies.moveEnemies();
+
+  canonShooter();
+  
 }
 
 // look through the array and remove a cells that we have already visted
@@ -165,6 +175,7 @@ function findPath () {
     if (currentValue === endingPoint) {
       endScreenDisplay = "Solution Found";
       console.log(endScreenDisplay);
+      enemies.setStartingLocation();
       noLoop();
       //screenState = "endScreen";
     }
@@ -215,10 +226,20 @@ function displayPath() {
     }
   }
 
+  // color the end red
   for (let x = 0; x < GRIDSIZE; x++) {
     for (let y = 0; y < GRIDSIZE; y++) {
       if (levelPath[x][y] === 3) {
         level[x][y].displayGrid(color("red"));
+      }
+    }
+  }
+
+  // chenge the color of cell when mouse clicked
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      if (levelPath[x][y] === 4) {
+        level[x][y].displayGrid(color("blue"));
       }
     }
   }
@@ -240,6 +261,7 @@ function displayPath() {
     path.push(value.previous);
     value = value.previous;
   }
+
   //display best path
   // if (currentValue === endingPoint){
   //   for (let x = 0; x < path.length; x++) {
@@ -298,12 +320,17 @@ class Enemy {
 
     this.x = x;
     this.y = y;
+    this.pathLocation = 0;
+  }
+
+  setStartingLocation() {
+    this.pathLocation = path.length - 1;
   }
 
   display() {
     levelPath[this.startX][this.startY] = 2;
 
-      // display enemyReachedEnd,enemy 
+    // display enemyReachedEnd,enemy 
     for (let x = 0; x < GRIDSIZE; x++) {
       for (let y = 0; y < GRIDSIZE; y++) {
         if (levelPath[x][y] === 2) {
@@ -314,13 +341,16 @@ class Enemy {
   }
 
   moveEnemies() {
-    for (let i = 1; i <= path.length; i++) {
-      levelPath[this.x][this.y] = 0;
-      this.x = path[path.length - i].y;
-      this.y = path[path.length - i].x;
-      levelPath[this.x][this.y] = 2;
-      console.log("moved");
-    }
+    // for (let i = 1; i <= path.length; i++) {
+    levelPath[this.x][this.y] = 0;
+    this.pathLocation -= 1;
+    console.log(this.pathLocation);
+    console.log(path);
+    this.y = path[this.pathLocation].y;
+    this.x = path[this.pathLocation].x;
+    levelPath[this.x][this.y] = 2;
+    console.log("have moved");
+    // }
   }
 }
 
@@ -329,9 +359,53 @@ function mouseClicked() {
   let cellY = floor(mouseY / cellHeight);
 
   if (cellX >= 0 && cellX < GRIDSIZE && cellY >= 0 && cellY < GRIDSIZE) {
-    if (levelPath === 1){
+    if (levelPath[cellX][cellY] === 1){
       levelPath[cellX][cellY] = 4;
+      console.log("mouseClicked");
     }
   }
-  console.log(cellX, cellY)
+  console.log(cellX, cellY);
+
+  enemies.moveEnemies();
+}
+
+// function move() {
+//   for (let i = 1; i <= path.length; i++) { 
+//     levelPath[enemyX][enemyY] = 0;
+//     enemyY = path[path.length - i].y;
+//     enemyX = path[path.length - i].x;
+//     levelPath[enemyX][enemyY] = 2;
+//     console.log("moved");
+//   }
+// }
+
+
+function canonShooter(){
+  imageMode(CENTER);
+  image(canon, canonXCordinate, canonYCordinate, canonWidth, canonHeight);
+}
+
+
+function mouseReleased() {
+  isDragging = false;
+}
+
+function isMouseInsideCanon() {
+  return mouseX > canonXCordinate &&
+         mouseX < canonXCordinate + canonWidth &&
+         mouseY > canonYCordinate &&
+         mouseY < canonYCordinate + canonHeight;
+}
+
+function moveRectangle() {
+  // move rectangle if required
+  if (isDragging) {
+    canonXCordinate = mouseX - canonWidth/2;
+    canonYCordinate = mouseY - canonHeight/2;
+  }
+}
+function mousePressed() {
+  if (isMouseInsideCanon()) {
+    isDragging = true;
+  }
 }
