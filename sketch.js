@@ -24,6 +24,7 @@ let endingPoint;
 let cellWidth, cellHeight;
 let path;
 let currentValue;
+let isPathFound = false;
 
 let endScreenDisplay;
 
@@ -66,7 +67,7 @@ function setup() {
   enemies = new Enemy (enemyX, enemyY);
 
   //place enemyReachedEnd,enemy
-  // window.setInterval(enemies.moveEnemies, 5000);
+  window.setInterval(enemies.moveEnemies, 5000);
 
   canon = loadImage("canon.jpg");
   canonXCordinate = windowWidth - windowWidth/1.11;
@@ -94,7 +95,7 @@ function draw() {
   enemies.display();
   // enemies.moveEnemies();
 
-  canonShooter();
+  //canonShooter();
   
 }
 
@@ -107,9 +108,7 @@ class Enemy {
     this.x = x;
     this.y = y;
     this.pathLocation = 0;
-  }
 
-  setStartingLocation() {
     this.pathLocation = path.length - 1;
   }
 
@@ -127,16 +126,16 @@ class Enemy {
   }
 
   moveEnemies() {
-    // for (let i = 1; i <= path.length; i++) {
-    levelPath[this.x][this.y] = 0;
-    this.pathLocation -= 1;
-    console.log(this.pathLocation);
-    console.log(path);
-    this.y = path[this.pathLocation].y;
-    this.x = path[this.pathLocation].x;
-    levelPath[this.x][this.y] = 2;
-    console.log("have moved");
-    // }
+    if (isPathFound) {
+      levelPath[this.x][this.y] = 0;
+      this.pathLocation -= 1;
+      console.log(this.pathLocation);
+      console.log(path);
+      this.y = path[this.pathLocation].y;
+      this.x = path[this.pathLocation].x;
+      levelPath[this.x][this.y] = 2;
+      console.log("have moved");
+    }
   }
 }
 
@@ -166,7 +165,15 @@ function displayPath() {
     }
   }
 
-  // //Display the fastest path from startingPoint to finish
+  // find the path
+  path = [];
+  let value = currentValue;
+  while (value.previous) {
+    path.push(value.previous);
+    value = value.previous;
+  }
+//*************************************************************** FOR DEBUGGING *********************************************************
+    // //Display the fastest path from startingPoint to finish
   // for (let x = 0; x < cellThatHaveBeenChecked.length; x++) {
   //   cellThatHaveBeenChecked[x].displayGrid(color(231, 13, 143));
   // }
@@ -175,14 +182,6 @@ function displayPath() {
   // for (let x = 0; x < cellsToCheck.length; x++) {
   //   cellsToCheck[x].displayGrid(color(185, 19, 231));
   // }
-
-  // find the path
-  path = [];
-  let value = currentValue;
-  while (value.previous) {
-    path.push(value.previous);
-    value = value.previous;
-  }
 
   //display best path
   // if (currentValue === endingPoint){
@@ -290,7 +289,7 @@ function mouseClicked() {
 //   }
 // }
 
-// *********************************************************** PATHFINDER **************************************************************
+// *********************************************************** PATHFINDER ***************************************************************
 class Pathfinder {
   constructor(x, y) {
     this.x = x;
@@ -337,60 +336,64 @@ class Pathfinder {
 
 function findPath () {
 
-  // keep searching for A path
-  if (cellsToCheck.length > 0) { 
-
-    let lowestValue = 0;
-    for (let x = 0; x < cellsToCheck.length; x++) {
-      if (cellsToCheck[x].f < cellsToCheck[lowestValue].f) {
-        lowestValue = x;
+  if (!isPathFound) {
+    // keep searching for A path
+    if (cellsToCheck.length > 0) { 
+  
+      let lowestValue = 0;
+      for (let x = 0; x < cellsToCheck.length; x++) {
+        if (cellsToCheck[x].f < cellsToCheck[lowestValue].f) {
+          lowestValue = x;
+        }
+      }
+      currentValue = cellsToCheck[lowestValue]; 
+  
+      if (currentValue === endingPoint) {
+        endScreenDisplay = "Solution Found";
+        console.log(endScreenDisplay);
+        // enemies.setStartingLocation();
+        isPathFound = true;
+        console.log(isPathFound);
+        console.log(path);
+        //screenState = "endScreen";
+      }
+  
+      // remove the value from the cellsToCheck and push it into the cellThatHaveBeenChecked
+      removeFromArray(cellsToCheck, currentValue);
+      cellThatHaveBeenChecked.push(currentValue);
+  
+      let neighborsToCheck = currentValue.neighborsToCheck;
+      for (let x = 0; x < neighborsToCheck.length; x++) {
+        let myNeighbours = neighborsToCheck[x];
+  
+        // Check to see that your neighbour is not a wall and has not already been checked
+        if (!cellThatHaveBeenChecked.includes(myNeighbours) && !myNeighbours.wall) {
+          let gValue = currentValue.g + 1;
+  
+          if (cellsToCheck.includes(myNeighbours)) {
+            if (gValue < myNeighbours.g) {
+              myNeighbours.g = gValue;
+            }
+          }
+          else {
+            myNeighbours.g = gValue;
+            cellsToCheck.push(myNeighbours);
+          }
+          // make an educated guess for the fastest path
+          myNeighbours.h = checkDistance(myNeighbours, endingPoint);
+          myNeighbours.f = myNeighbours.g + myNeighbours.h;
+          myNeighbours.previous = currentValue;
+        }
       }
     }
-    currentValue = cellsToCheck[lowestValue]; 
-
-    if (currentValue === endingPoint) {
-      endScreenDisplay = "Solution Found";
+  
+    // No Solution
+    else {
+      endScreenDisplay = "No Solution Found";
       console.log(endScreenDisplay);
-      enemies.setStartingLocation();
-      noLoop();
+      isPathFound = true;
       //screenState = "endScreen";
     }
-
-    // remove the value from the cellsToCheck and push it into the cellThatHaveBeenChecked
-    removeFromArray(cellsToCheck, currentValue);
-    cellThatHaveBeenChecked.push(currentValue);
-
-    let neighborsToCheck = currentValue.neighborsToCheck;
-    for (let x = 0; x < neighborsToCheck.length; x++) {
-      let myNeighbours = neighborsToCheck[x];
-
-      // Check to see that your neighbour is not a wall and has not already been checked
-      if (!cellThatHaveBeenChecked.includes(myNeighbours) && !myNeighbours.wall) {
-        let gValue = currentValue.g + 1;
-
-        if (cellsToCheck.includes(myNeighbours)) {
-          if (gValue < myNeighbours.g) {
-            myNeighbours.g = gValue;
-          }
-        }
-        else {
-          myNeighbours.g = gValue;
-          cellsToCheck.push(myNeighbours);
-        }
-        // make an educated guess for the fastest path
-        myNeighbours.h = checkDistance(myNeighbours, endingPoint);
-        myNeighbours.f = myNeighbours.g + myNeighbours.h;
-        myNeighbours.previous = currentValue;
-      }
-    }
-  }
-
-  // No Solution
-  else {
-    endScreenDisplay = "No Solution Found";
-    console.log(endScreenDisplay);
-    noLoop();
-    //screenState = "endScreen";
   }
 }
 

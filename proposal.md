@@ -21,8 +21,3 @@ WE have made a similar version of the Lord's mobile Kingdom game. But we have pu
 - able to choose different guns
 - able to shut off the sound
 - some kind of sound effects
-
-
-<!-- to Do -->
-<!-- create a boolen for the pathfinder-->
-<!-- make sure the path[] is made before you start moving the enemy -->
