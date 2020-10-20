@@ -98,21 +98,199 @@ function draw() {
   
 }
 
-// look through the array and remove a cells that we have already visted
-function removeFromArray(array, value) {
-  for (let x = array.length - 1; x >= 0; x--) {
-    if (array[x] === value) {
-      array.splice(x, 1);
+class Enemy {
+  constructor (x, y) {
+    this.startX = x;
+    this.startY = y;
+    this.color = color(random (255), random (255), random (255));
+
+    this.x = x;
+    this.y = y;
+    this.pathLocation = 0;
+  }
+
+  setStartingLocation() {
+    this.pathLocation = path.length - 1;
+  }
+
+  display() {
+    levelPath[this.startX][this.startY] = 2;
+
+    // display enemyReachedEnd,enemy 
+    for (let x = 0; x < GRIDSIZE; x++) {
+      for (let y = 0; y < GRIDSIZE; y++) {
+        if (levelPath[x][y] === 2) {
+          level[x][y].displayGrid(color(this.color));
+        }
+      }
     }
+  }
+
+  moveEnemies() {
+    // for (let i = 1; i <= path.length; i++) {
+    levelPath[this.x][this.y] = 0;
+    this.pathLocation -= 1;
+    console.log(this.pathLocation);
+    console.log(path);
+    this.y = path[this.pathLocation].y;
+    this.x = path[this.pathLocation].x;
+    levelPath[this.x][this.y] = 2;
+    console.log("have moved");
+    // }
   }
 }
 
-// check the distance between the starting and ending points
-function checkDistance(a , b) {
-  let distance = abs(a.x - b.x) + abs(a.y - b.y);
-  return distance;
+function displayPath() {
+// display level
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      level[x][y].displayGrid(color(230,230,230));
+    }
+  }
+
+  // color the end red
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      if (levelPath[x][y] === 3) {
+        level[x][y].displayGrid(color("red"));
+      }
+    }
+  }
+
+  // chenge the color of cell when mouse clicked
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      if (levelPath[x][y] === 4) {
+        level[x][y].displayGrid(color("blue"));
+      }
+    }
+  }
+
+  // //Display the fastest path from startingPoint to finish
+  // for (let x = 0; x < cellThatHaveBeenChecked.length; x++) {
+  //   cellThatHaveBeenChecked[x].displayGrid(color(231, 13, 143));
+  // }
+
+  // //change the color of the cells that have already been checked
+  // for (let x = 0; x < cellsToCheck.length; x++) {
+  //   cellsToCheck[x].displayGrid(color(185, 19, 231));
+  // }
+
+  // find the path
+  path = [];
+  let value = currentValue;
+  while (value.previous) {
+    path.push(value.previous);
+    value = value.previous;
+  }
+
+  //display best path
+  // if (currentValue === endingPoint){
+  //   for (let x = 0; x < path.length; x++) {
+  //     path[x].displayGrid(color("white"));
+  //   }
+  // }
 }
 
+function generateGrid() {
+  cellWidth = width / GRIDSIZE;
+  cellHeight = height / GRIDSIZE;
+
+  // convert Level into 2D array
+  for (let i = 0; i < level.length; i++) {
+    level[i] = level[i].split(",");
+  }
+
+  //loop through the whole 2D array, and turn everything to numbers
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      level[x][y] = int(level[x][y]);
+    }
+  }
+
+  // convert Level Path into 2D array
+  for (let i = 0; i < levelPath.length; i++) {
+    levelPath[i] = levelPath[i].split(",");
+  }
+
+  //loop through the whole 2D array, and turn everything to numbers
+  for (let y = 0; y < GRIDSIZE; y++) {
+    for (let x = 0; x < GRIDSIZE; x++) {
+      levelPath[y][x] = int(levelPath[y][x]);
+    }
+  }
+
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      level[x][y] = new Pathfinder (x, y);
+    }
+  }
+
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      level[x][y].checkNeighbors(level);
+    }
+  } 
+}
+
+function mouseClicked() {
+  let cellX = floor(mouseX / cellWidth);
+  let cellY = floor(mouseY / cellHeight);
+
+  if (cellX >= 0 && cellX < GRIDSIZE && cellY >= 0 && cellY < GRIDSIZE) {
+    if (levelPath[cellX][cellY] === 1){
+      levelPath[cellX][cellY] = 4;
+      console.log("mouseClicked");
+    }
+  }
+  console.log(cellX, cellY);
+
+  enemies.moveEnemies();
+}
+
+// ************************************************************ TEST *******************************************************************
+// function move() {
+//   for (let i = 1; i <= path.length; i++) { 
+//     levelPath[enemyX][enemyY] = 0;
+//     enemyY = path[path.length - i].y;
+//     enemyX = path[path.length - i].x;
+//     levelPath[enemyX][enemyY] = 2;
+//     console.log("moved");
+//   }
+// }
+
+
+// function canonShooter(){
+//   imageMode(CENTER);
+//   image(canon, canonXCordinate, canonYCordinate, canonWidth, canonHeight);
+// }
+
+
+// function mouseReleased() {
+//   isDragging = false;
+// }
+
+// function isMouseInsideCanon() {
+//   return mouseX > canonXCordinate &&
+//          mouseX < canonXCordinate + canonWidth &&
+//          mouseY > canonYCordinate &&
+//          mouseY < canonYCordinate + canonHeight;
+// }
+
+// function moveRectangle() {
+//   // move rectangle if required
+//   if (isDragging) {
+//     canonXCordinate = mouseX - canonWidth/2;
+//     canonYCordinate = mouseY - canonHeight/2;
+//   }
+// }
+// function mousePressed() {
+//   if (isMouseInsideCanon()) {
+//     isDragging = true;
+//   }
+// }
+
+// *********************************************************** PATHFINDER **************************************************************
 class Pathfinder {
   constructor(x, y) {
     this.x = x;
@@ -156,8 +334,6 @@ class Pathfinder {
     }
   }
 }
-
-
 
 function findPath () {
 
@@ -218,194 +394,17 @@ function findPath () {
   }
 }
 
-function displayPath() {
-// display level
-  for (let x = 0; x < GRIDSIZE; x++) {
-    for (let y = 0; y < GRIDSIZE; y++) {
-      level[x][y].displayGrid(color(230,230,230));
+// look through the array and remove a cells that we have already visted
+function removeFromArray(array, value) {
+  for (let x = array.length - 1; x >= 0; x--) {
+    if (array[x] === value) {
+      array.splice(x, 1);
     }
-  }
-
-  // color the end red
-  for (let x = 0; x < GRIDSIZE; x++) {
-    for (let y = 0; y < GRIDSIZE; y++) {
-      if (levelPath[x][y] === 3) {
-        level[x][y].displayGrid(color("red"));
-      }
-    }
-  }
-
-  // chenge the color of cell when mouse clicked
-  for (let x = 0; x < GRIDSIZE; x++) {
-    for (let y = 0; y < GRIDSIZE; y++) {
-      if (levelPath[x][y] === 4) {
-        level[x][y].displayGrid(color("blue"));
-      }
-    }
-  }
-
-  // //Display the fastest path from startingPoint to finish
-  // for (let x = 0; x < cellThatHaveBeenChecked.length; x++) {
-  //   cellThatHaveBeenChecked[x].displayGrid(color(231, 13, 143));
-  // }
-
-  // //change the color of the cells that have already been checked
-  // for (let x = 0; x < cellsToCheck.length; x++) {
-  //   cellsToCheck[x].displayGrid(color(185, 19, 231));
-  // }
-
-  // find the path
-  path = [];
-  let value = currentValue;
-  while (value.previous) {
-    path.push(value.previous);
-    value = value.previous;
-  }
-
-  //display best path
-  // if (currentValue === endingPoint){
-  //   for (let x = 0; x < path.length; x++) {
-  //     path[x].displayGrid(color("white"));
-  //   }
-  // }
-}
-
-// A level
-function generateGrid() {
-  cellWidth = width / GRIDSIZE;
-  cellHeight = height / GRIDSIZE;
-
-  // convert Level into 2D array
-  for (let i = 0; i < level.length; i++) {
-    level[i] = level[i].split(",");
-  }
-
-  //loop through the whole 2D array, and turn everything to numbers
-  for (let x = 0; x < GRIDSIZE; x++) {
-    for (let y = 0; y < GRIDSIZE; y++) {
-      level[x][y] = int(level[x][y]);
-    }
-  }
-
-  // convert Level Path into 2D array
-  for (let i = 0; i < levelPath.length; i++) {
-    levelPath[i] = levelPath[i].split(",");
-  }
-
-  //loop through the whole 2D array, and turn everything to numbers
-  for (let y = 0; y < GRIDSIZE; y++) {
-    for (let x = 0; x < GRIDSIZE; x++) {
-      levelPath[y][x] = int(levelPath[y][x]);
-    }
-  }
-
-  for (let x = 0; x < GRIDSIZE; x++) {
-    for (let y = 0; y < GRIDSIZE; y++) {
-      level[x][y] = new Pathfinder (x, y);
-    }
-  }
-
-  for (let x = 0; x < GRIDSIZE; x++) {
-    for (let y = 0; y < GRIDSIZE; y++) {
-      level[x][y].checkNeighbors(level);
-    }
-  } 
-}
-
-class Enemy {
-  constructor (x, y) {
-    this.startX = x;
-    this.startY = y;
-    this.color = color(random (255), random (255), random (255));
-
-    this.x = x;
-    this.y = y;
-    this.pathLocation = 0;
-  }
-
-  setStartingLocation() {
-    this.pathLocation = path.length - 1;
-  }
-
-  display() {
-    levelPath[this.startX][this.startY] = 2;
-
-    // display enemyReachedEnd,enemy 
-    for (let x = 0; x < GRIDSIZE; x++) {
-      for (let y = 0; y < GRIDSIZE; y++) {
-        if (levelPath[x][y] === 2) {
-          level[x][y].displayGrid(color(this.color));
-        }
-      }
-    }
-  }
-
-  moveEnemies() {
-    // for (let i = 1; i <= path.length; i++) {
-    levelPath[this.x][this.y] = 0;
-    this.pathLocation -= 1;
-    console.log(this.pathLocation);
-    console.log(path);
-    this.y = path[this.pathLocation].y;
-    this.x = path[this.pathLocation].x;
-    levelPath[this.x][this.y] = 2;
-    console.log("have moved");
-    // }
   }
 }
 
-function mouseClicked() {
-  let cellX = floor(mouseX / cellWidth);
-  let cellY = floor(mouseY / cellHeight);
-
-  if (cellX >= 0 && cellX < GRIDSIZE && cellY >= 0 && cellY < GRIDSIZE) {
-    if (levelPath[cellX][cellY] === 1){
-      levelPath[cellX][cellY] = 4;
-      console.log("mouseClicked");
-    }
-  }
-  console.log(cellX, cellY);
-
-  enemies.moveEnemies();
-}
-
-// function move() {
-//   for (let i = 1; i <= path.length; i++) { 
-//     levelPath[enemyX][enemyY] = 0;
-//     enemyY = path[path.length - i].y;
-//     enemyX = path[path.length - i].x;
-//     levelPath[enemyX][enemyY] = 2;
-//     console.log("moved");
-//   }
-// }
-
-
-function canonShooter(){
-  imageMode(CENTER);
-  image(canon, canonXCordinate, canonYCordinate, canonWidth, canonHeight);
-}
-
-
-function mouseReleased() {
-  isDragging = false;
-}
-
-function isMouseInsideCanon() {
-  return mouseX > canonXCordinate &&
-         mouseX < canonXCordinate + canonWidth &&
-         mouseY > canonYCordinate &&
-         mouseY < canonYCordinate + canonHeight;
-}
-
-function moveRectangle() {
-  // move rectangle if required
-  if (isDragging) {
-    canonXCordinate = mouseX - canonWidth/2;
-    canonYCordinate = mouseY - canonHeight/2;
-  }
-}
-function mousePressed() {
-  if (isMouseInsideCanon()) {
-    isDragging = true;
-  }
+// check the distance between the starting and ending points
+function checkDistance(a , b) {
+  let distance = abs(a.x - b.x) + abs(a.y - b.y);
+  return distance;
 }
