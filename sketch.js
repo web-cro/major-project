@@ -25,6 +25,7 @@ let cellWidth, cellHeight;
 let path;
 let currentValue;
 let isPathFound = false;
+let finishMakingPath = false;
 
 let endScreenDisplay;
 
@@ -33,6 +34,7 @@ let level, levelPath;
 let enemyX = 0;
 let enemyY = 0;
 let enemies;
+let pathToFollow = [];
 
 let canon;
 let canonXCordinate, canonYCordinate, canonWidth, canonHeight;
@@ -64,10 +66,10 @@ function setup() {
 
   cellsToCheck.push(startingPoint);
 
-  enemies = new Enemy (enemyX, enemyY);
+  enemies = new Enemy (enemyX, enemyY, pathToFollow);
 
   //place enemyReachedEnd,enemy
-  window.setInterval(enemies.moveEnemies, 5000);
+  // this.setInterval(enemies.move, 5000);
 
   canon = loadImage("canon.jpg");
   canonXCordinate = windowWidth - windowWidth/1.11;
@@ -91,6 +93,7 @@ function draw() {
       }
     }
   }
+
   //move();
   enemies.display();
   // enemies.moveEnemies();
@@ -99,8 +102,12 @@ function draw() {
   
 }
 
+// function keyPressed() {
+//   enemies.pathLocation = path.length - 1;
+// }
+
 class Enemy {
-  constructor (x, y) {
+  constructor(x, y, path) {
     this.startX = x;
     this.startY = y;
     this.color = color(random (255), random (255), random (255));
@@ -108,35 +115,43 @@ class Enemy {
     this.x = x;
     this.y = y;
     this.pathLocation = 0;
+    this.followPath = path;
 
-    this.pathLocation = path.length - 1;
+    // this.pathLocation = path.length - 1;
   }
 
-  display() {
-    levelPath[this.startX][this.startY] = 2;
-
-    // display enemyReachedEnd,enemy 
-    for (let x = 0; x < GRIDSIZE; x++) {
-      for (let y = 0; y < GRIDSIZE; y++) {
-        if (levelPath[x][y] === 2) {
-          level[x][y].displayGrid(color(this.color));
-        }
-      }
-    }
-  }
-
-  moveEnemies() {
-    if (isPathFound) {
+  move() {
+    if (isPathFound && finishMakingPath) {
+      this.pathLocation += 1;
       levelPath[this.x][this.y] = 0;
-      this.pathLocation -= 1;
-      console.log(this.pathLocation);
-      console.log(path);
-      this.y = path[this.pathLocation].y;
-      this.x = path[this.pathLocation].x;
+      this.y = this.followPath[this.pathLocation].y;
+      this.x = this.followPath[this.pathLocation].x;
       levelPath[this.x][this.y] = 2;
       console.log("have moved");
     }
   }
+
+  display() {
+    console.log(this);
+    // if (x === 0 && y === 0) {
+    //   levelPath[this.x][this.y] = 2;
+    // }
+
+    // display enemyReachedEnd,enemy 
+    for (let x = 0; x < GRIDSIZE; x++) {
+      for (let y = 0; y < GRIDSIZE; y++) {
+        if (levelPath[x][y] === 2) { // Check this if statement works
+          console.log("trying to display");
+          fill("black");
+          rect(x*cellWidth, y*cellHeight, cellWidth, cellHeight);
+          level[x][y].displayGrid(color(enemies.color));
+        }
+      }
+    }
+
+  }
+
+
 }
 
 function displayPath() {
@@ -144,36 +159,51 @@ function displayPath() {
   for (let x = 0; x < GRIDSIZE; x++) {
     for (let y = 0; y < GRIDSIZE; y++) {
       level[x][y].displayGrid(color(230,230,230));
-    }
-  }
-
-  // color the end red
-  for (let x = 0; x < GRIDSIZE; x++) {
-    for (let y = 0; y < GRIDSIZE; y++) {
       if (levelPath[x][y] === 3) {
         level[x][y].displayGrid(color("red"));
       }
-    }
-  }
-
-  // chenge the color of cell when mouse clicked
-  for (let x = 0; x < GRIDSIZE; x++) {
-    for (let y = 0; y < GRIDSIZE; y++) {
       if (levelPath[x][y] === 4) {
         level[x][y].displayGrid(color("blue"));
       }
     }
   }
+  
+  // // color the end red
+  // for (let x = 0; x < GRIDSIZE; x++) {
+  //   for (let y = 0; y < GRIDSIZE; y++) {
+  //   }
+  // }
 
-  // find the path
-  path = [];
-  let value = currentValue;
-  while (value.previous) {
-    path.push(value.previous);
-    value = value.previous;
+  // // chenge the color of cell when mouse clicked
+  // for (let x = 0; x < GRIDSIZE; x++) {
+  //   for (let y = 0; y < GRIDSIZE; y++) {
+  //   }
+  // }
+
+  //find the path
+  if (isPathFound) {
+    path = [];
+    let value = currentValue;
+    while (value.previous) {
+      path.push(value.previous);
+      value = value.previous;
+    }
+    
+    if (path.length === 45) {
+      finishMakingPath = true;
+      console.log(finishMakingPath);
+      console.log(path);
+      noLoop();
+    }
   }
-//*************************************************************** FOR DEBUGGING *********************************************************
-    // //Display the fastest path from startingPoint to finish
+
+  while(path.length > 0) {
+    pathToFollow.push(path.pop());
+    console.log(path);
+    console.log(pathToFollow);
+  }
+  //*************************************************************** FOR DEBUGGING *********************************************************
+  // //Display the fastest path from startingPoint to finish
   // for (let x = 0; x < cellThatHaveBeenChecked.length; x++) {
   //   cellThatHaveBeenChecked[x].displayGrid(color(231, 13, 143));
   // }
@@ -243,8 +273,8 @@ function mouseClicked() {
     }
   }
   console.log(cellX, cellY);
-
-  enemies.moveEnemies();
+  console.log(enemies.x, enemies.y);
+  enemies.move();
 }
 
 // ************************************************************ TEST *******************************************************************
@@ -336,7 +366,7 @@ class Pathfinder {
 
 function findPath () {
 
-  if (!isPathFound) {
+  if (isPathFound === false) {
     // keep searching for A path
     if (cellsToCheck.length > 0) { 
   
@@ -411,3 +441,21 @@ function checkDistance(a , b) {
   let distance = abs(a.x - b.x) + abs(a.y - b.y);
   return distance;
 }
+
+
+
+
+// move() {
+//   if (isPathFound && finishMakingPath) {
+//     console.log(levelPath);
+//     console.log(this);
+//     levelPath[this.x][this.y] = 0;
+//     this.pathLocation += 1;
+//     console.log(this.pathLocation);
+//     console.log(path);
+//     this.y = this.followPath[this.pathLocation].y;
+//     this.x = this.followPath[this.pathLocation].x;
+//     levelPath[this.x][this.y] = 2;
+//     console.log("have moved");
+//   }
+// }
