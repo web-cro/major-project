@@ -32,6 +32,7 @@ let level, levelPath;
 
 let enemyX = 0;
 let enemyY = 0;
+let enemyHealth = 100;
 let enemies;
 let pathToFollow = [];
 
@@ -48,7 +49,7 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
+  createCanvas(1069, 757);
  
   cellsToCheck = [];
   cellThatHaveBeenChecked = [];
@@ -65,7 +66,7 @@ function setup() {
 
   cellsToCheck.push(startingPoint);
 
-  enemies = new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth);
+  enemies = new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth, enemyHealth);
 
   //place enemyReachedEnd,enemy
   // this.setInterval(enemies.move, 5000);
@@ -94,7 +95,9 @@ function draw() {
   }
 
   //move();
-  enemies.display();
+  if (enemies.health > 0) {
+    enemies.display();
+  }
   enemies.healthBar();
   // enemies.moveEnemies();
 
@@ -107,12 +110,13 @@ function draw() {
 // }
 
 class Enemy {
-  constructor(x, y, path, height, width) {
+  constructor(x, y, path, height, width, health, healthBarColor) {
     this.startX = x;
     this.startY = y;
     this.color = color(random (255), random (255), random (255));
     this.width = width;
     this.height = height;
+    this.health = health;
 
     this.x = x;
     this.y = y;
@@ -121,6 +125,7 @@ class Enemy {
 
     this.healthBarWidth = width;
     this.healthBarHeight = height / 3;
+    // this.healthBarColor = healthBarColor;
     // this.pathLocation = path.length - 1;
   }
 
@@ -142,8 +147,8 @@ class Enemy {
     for (let x = 0; x < GRIDSIZE; x++) {
       for (let y = 0; y < GRIDSIZE; y++) {
         if (levelPath[x][y] === 2) {
-
-          rect(this.x, this.y, cellWidth, cellHeight);
+          fill("black");
+          rect(this.x * this.width, this.y * this.height, this.width, this.height);
           // level[x][y].displayGrid(color("red"));
         }
       }
@@ -152,12 +157,28 @@ class Enemy {
 
   healthBar() {
     noFill();
+    // stroke();
     strokeWeight(2);
-    rect(this.x * cellWidth, this.y * cellHeight - 20, this.healthBarWidth, this.healthBarHeight, 10, 10);
+    rect(this.x * this.width, this.y * this.height - 20, this.healthBarWidth, this.healthBarHeight, 10, 10);
+
+    noStroke();
+    if (this.health <= 100 && this.health >= 60) {
+      fill("green");
+      rect(this.x * this.width, this.y * this.height - 20, this.healthBarWidth, this.healthBarHeight, 10, 10);
+
+    }
+    else if (this.health < 90 && this.health >= 30) {
+
+      fill("yellow");
+      rect(this.x * this.width, this.y * this.height - 20, this.healthBarWidth - 20, this.healthBarHeight, 10, 10);
+    }
+    else if (this.health < 60 && this.health > 0) {
+      fill("red");
+      rect(this.x * this.width, this.y * this.height - 20, this.healthBarWidth - 40, this.healthBarHeight, 10, 10);
+    }
   }
-
-
 }
+
 
 function displayPath() {
 // display level
@@ -269,15 +290,17 @@ function generateGrid() {
 function mouseClicked() {
   let cellX = floor(mouseX / cellWidth);
   let cellY = floor(mouseY / cellHeight);
+  enemies.health -= 10;
+  console.log(enemies.health);
 
-  if (cellX >= 0 && cellX < GRIDSIZE && cellY >= 0 && cellY < GRIDSIZE) {
-    if (levelPath[cellX][cellY] === 1){
-      levelPath[cellX][cellY] = 4;
-      console.log("mouseClicked");
-    }
-  }
-  console.log(cellX, cellY);
-  console.log(enemies.x, enemies.y);
+  // if (cellX >= 0 && cellX < GRIDSIZE && cellY >= 0 && cellY < GRIDSIZE) {
+  //   if (levelPath[cellX][cellY] === 1){
+  //     levelPath[cellX][cellY] = 4;
+  //     console.log("mouseClicked");
+  //   }
+  // }
+  // console.log(cellX, cellY);
+  // console.log(enemies.x, enemies.y);
   enemies.move();
 }
 

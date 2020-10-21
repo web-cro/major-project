@@ -21,3 +21,14 @@ WE have made a similar version of the Lord's mobile Kingdom game. But we have pu
 - able to choose different guns
 - able to shut off the sound
 - some kind of sound effects
+
+
+
+
+
+## To Do
+<!-- clean up the whole code -->
+<!-- make a better health bar -->
+<!-- make the enemies an array, so we can make multipul enemies -->
+<!-- make a timer for the enemies movement -->
+<!-- display the score -->
