@@ -25,7 +25,6 @@ let cellWidth, cellHeight;
 let path;
 let currentValue;
 let isPathFound = false;
-let finishMakingPath = false;
 
 let endScreenDisplay;
 
@@ -66,7 +65,7 @@ function setup() {
 
   cellsToCheck.push(startingPoint);
 
-  enemies = new Enemy (enemyX, enemyY, pathToFollow);
+  enemies = new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth);
 
   //place enemyReachedEnd,enemy
   // this.setInterval(enemies.move, 5000);
@@ -96,6 +95,7 @@ function draw() {
 
   //move();
   enemies.display();
+  enemies.healthBar();
   // enemies.moveEnemies();
 
   //canonShooter();
@@ -107,48 +107,53 @@ function draw() {
 // }
 
 class Enemy {
-  constructor(x, y, path) {
+  constructor(x, y, path, height, width) {
     this.startX = x;
     this.startY = y;
     this.color = color(random (255), random (255), random (255));
+    this.width = width;
+    this.height = height;
 
     this.x = x;
     this.y = y;
     this.pathLocation = 0;
     this.followPath = path;
 
+    this.healthBarWidth = width;
+    this.healthBarHeight = height / 3;
     // this.pathLocation = path.length - 1;
   }
 
   move() {
-    if (isPathFound && finishMakingPath) {
-      this.pathLocation += 1;
-      levelPath[this.x][this.y] = 0;
-      this.y = this.followPath[this.pathLocation].y;
-      this.x = this.followPath[this.pathLocation].x;
-      levelPath[this.x][this.y] = 2;
-      console.log("have moved");
-    }
+    this.pathLocation += 1;
+    levelPath[this.x][this.y] = 0;
+    this.y = this.followPath[this.pathLocation].y;
+    this.x = this.followPath[this.pathLocation].x;
+    levelPath[this.x][this.y] = 2;
+    console.log("have moved");
   }
 
   display() {
-    console.log(this);
+    //console.log(this);
     // if (x === 0 && y === 0) {
-    //   levelPath[this.x][this.y] = 2;
+    levelPath[this.x][this.y] = 2;
     // }
-
-    // display enemyReachedEnd,enemy 
+    //display enemyReachedEnd,enemy 
     for (let x = 0; x < GRIDSIZE; x++) {
       for (let y = 0; y < GRIDSIZE; y++) {
-        if (levelPath[x][y] === 2) { // Check this if statement works
-          console.log("trying to display");
-          fill("black");
-          rect(x*cellWidth, y*cellHeight, cellWidth, cellHeight);
-          level[x][y].displayGrid(color(enemies.color));
+        if (levelPath[x][y] === 2) {
+
+          rect(this.x, this.y, cellWidth, cellHeight);
+          // level[x][y].displayGrid(color("red"));
         }
       }
     }
+  }
 
+  healthBar() {
+    noFill();
+    strokeWeight(2);
+    rect(this.x * cellWidth, this.y * cellHeight - 20, this.healthBarWidth, this.healthBarHeight, 10, 10);
   }
 
 
@@ -162,9 +167,15 @@ function displayPath() {
       if (levelPath[x][y] === 3) {
         level[x][y].displayGrid(color("red"));
       }
-      if (levelPath[x][y] === 4) {
-        level[x][y].displayGrid(color("blue"));
-      }
+      // if (levelPath[x][y] === 4) {
+      //   level[x][y].displayGrid(color("blue"));
+      // }
+      // if (levelPath[x][y] === 2) { // Check this if statement works
+      //   console.log("trying to display");
+      //   fill("black");
+      //   rect(x*cellWidth, y*cellHeight, cellWidth, cellHeight);
+      //   level[x][y].displayGrid(color(enemies.color));
+      // }
     }
   }
   
@@ -188,19 +199,12 @@ function displayPath() {
       path.push(value.previous);
       value = value.previous;
     }
-    
-    if (path.length === 45) {
-      finishMakingPath = true;
-      console.log(finishMakingPath);
-      console.log(path);
-      noLoop();
-    }
   }
 
   while(path.length > 0) {
     pathToFollow.push(path.pop());
-    console.log(path);
-    console.log(pathToFollow);
+    //console.log(path);
+    //console.log(pathToFollow);
   }
   //*************************************************************** FOR DEBUGGING *********************************************************
   // //Display the fastest path from startingPoint to finish
@@ -335,6 +339,7 @@ class Pathfinder {
   }
   // create and color rects to use when display level
   displayGrid(color) {
+    strokeWeight(0);
     fill(color);
     if (this.wall) {
       fill(0, 255, 0);
