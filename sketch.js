@@ -28,12 +28,14 @@ let isPathFound = false;
 
 let endScreenDisplay;
 
-let level, levelPath;
+let grid, levelPath;
 
+let enemies = [];
+let enemy;
+let numberOfEnemies = 2;
 let enemyX = 0;
 let enemyY = 0;
 let enemyHealth = 100;
-let enemies;
 let pathToFollow = [];
 
 let canon;
@@ -42,14 +44,15 @@ let canonXCordinate, canonYCordinate, canonWidth, canonHeight;
 let x, y, isDragging;
 
 let score = 0;
+let level = 1;
 
 function preload() {
-  level = loadStrings("assets/level1.txt");
+  grid = loadStrings("assets/level1.txt");
   levelPath = loadStrings("assets/level1path.txt");
 }
 
 function setup() {
-  createCanvas(1069, 757);
+  createCanvas(windowWidth, windowHeight);
  
   cellsToCheck = [];
   cellThatHaveBeenChecked = [];
@@ -58,25 +61,24 @@ function setup() {
   generateGrid();
 
   // startingPoint point
-  startingPoint = level[0][0];
-  //startingPoint.wall = false;
+  startingPoint = grid[0][0];
+
   // endingPoint point
-  endingPoint = level[13][12];
-  //endingPoint.wall = false;
+  endingPoint = grid[13][12];
 
   cellsToCheck.push(startingPoint);
 
-  enemies = new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth, enemyHealth);
-
-  //place enemyReachedEnd,enemy
-  // this.setInterval(enemies.move, 5000);
+  enemy = new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth, enemyHealth);
+  for (let i = 0; i < numberOfEnemies; i++) {
+    enemies[i] = enemy;
+  }
 
   canon = loadImage("canon.jpg");
   canonXCordinate = windowWidth - windowWidth/1.11;
   canonYCordinate = windowHeight - windowHeight/1.82;
   canonWidth = cellWidth*3;
   canonHeight = cellHeight*3;
-  
+
 }
 
 function draw() {
@@ -84,30 +86,17 @@ function draw() {
   background(0);
   findPath();
   displayPath();
+  makePathForEnemy();
+  enemy.enemyAlive();
   
-  // Make wall where need
-  for (let x = 0; x < GRIDSIZE; x++) {
-    for (let y = 0; y < GRIDSIZE; y++) {
-      if (levelPath[x][y] === 1) {
-        level[x][y].wall = true;
-      }
-    }
+  if (enemy.isEnemyAlive) {
+    enemy.display();
+    enemy.healthBar();
   }
-
-  //move();
-  if (enemies.health > 0) {
-    enemies.display();
-  }
-  enemies.healthBar();
-  // enemies.moveEnemies();
-
-  //canonShooter();
-  
+  displayLevel();
+  displayScore();
+  changeDisplay()
 }
-
-// function keyPressed() {
-//   enemies.pathLocation = path.length - 1;
-// }
 
 class Enemy {
   constructor(x, y, path, height, width, health, healthBarColor) {
@@ -117,6 +106,7 @@ class Enemy {
     this.width = width;
     this.height = height;
     this.health = health;
+    this.isEnemyAlive = true;
 
     this.x = x;
     this.y = y;
@@ -125,31 +115,27 @@ class Enemy {
 
     this.healthBarWidth = width;
     this.healthBarHeight = height / 3;
-    // this.healthBarColor = healthBarColor;
-    // this.pathLocation = path.length - 1;
   }
 
   move() {
-    this.pathLocation += 1;
-    levelPath[this.x][this.y] = 0;
-    this.y = this.followPath[this.pathLocation].y;
-    this.x = this.followPath[this.pathLocation].x;
-    levelPath[this.x][this.y] = 2;
-    console.log("have moved");
+    if (isPathFound) {
+      this.pathLocation += 1;
+      levelPath[this.x][this.y] = 0;
+      this.y = this.followPath[this.pathLocation].y;
+      this.x = this.followPath[this.pathLocation].x;
+      levelPath[this.x][this.y] = 2;
+      console.log("have moved");
+    }
   }
 
   display() {
-    //console.log(this);
-    // if (x === 0 && y === 0) {
     levelPath[this.x][this.y] = 2;
-    // }
-    //display enemyReachedEnd,enemy 
+
     for (let x = 0; x < GRIDSIZE; x++) {
       for (let y = 0; y < GRIDSIZE; y++) {
         if (levelPath[x][y] === 2) {
           fill("black");
           rect(this.x * this.width, this.y * this.height, this.width, this.height);
-          // level[x][y].displayGrid(color("red"));
         }
       }
     }
@@ -177,73 +163,35 @@ class Enemy {
       rect(this.x * this.width, this.y * this.height - 20, this.healthBarWidth - 40, this.healthBarHeight, 10, 10);
     }
   }
+
+  enemyAlive() {
+    if (this.health <= 0) {
+      this.isEnemyAlive = false;
+    }
+  }
 }
 
 
 function displayPath() {
-// display level
+// display grid
   for (let x = 0; x < GRIDSIZE; x++) {
     for (let y = 0; y < GRIDSIZE; y++) {
-      level[x][y].displayGrid(color(230,230,230));
+      grid[x][y].displayGrid(color(230,230,230));
       if (levelPath[x][y] === 3) {
-        level[x][y].displayGrid(color("red"));
+        grid[x][y].displayGrid(color("red"));
       }
-      // if (levelPath[x][y] === 4) {
-      //   level[x][y].displayGrid(color("blue"));
-      // }
-      // if (levelPath[x][y] === 2) { // Check this if statement works
-      //   console.log("trying to display");
-      //   fill("black");
-      //   rect(x*cellWidth, y*cellHeight, cellWidth, cellHeight);
-      //   level[x][y].displayGrid(color(enemies.color));
-      // }
-    }
-  }
-  
-  // // color the end red
-  // for (let x = 0; x < GRIDSIZE; x++) {
-  //   for (let y = 0; y < GRIDSIZE; y++) {
-  //   }
-  // }
-
-  // // chenge the color of cell when mouse clicked
-  // for (let x = 0; x < GRIDSIZE; x++) {
-  //   for (let y = 0; y < GRIDSIZE; y++) {
-  //   }
-  // }
-
-  //find the path
-  if (isPathFound) {
-    path = [];
-    let value = currentValue;
-    while (value.previous) {
-      path.push(value.previous);
-      value = value.previous;
     }
   }
 
-  while(path.length > 0) {
-    pathToFollow.push(path.pop());
-    //console.log(path);
-    //console.log(pathToFollow);
+  // Make wall where need
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      if (levelPath[x][y] === 1) {
+        grid[x][y].wall = true;
+      }
+    }
   }
-  //*************************************************************** FOR DEBUGGING *********************************************************
-  // //Display the fastest path from startingPoint to finish
-  // for (let x = 0; x < cellThatHaveBeenChecked.length; x++) {
-  //   cellThatHaveBeenChecked[x].displayGrid(color(231, 13, 143));
-  // }
 
-  // //change the color of the cells that have already been checked
-  // for (let x = 0; x < cellsToCheck.length; x++) {
-  //   cellsToCheck[x].displayGrid(color(185, 19, 231));
-  // }
-
-  //display best path
-  // if (currentValue === endingPoint){
-  //   for (let x = 0; x < path.length; x++) {
-  //     path[x].displayGrid(color("white"));
-  //   }
-  // }
 }
 
 function generateGrid() {
@@ -251,14 +199,14 @@ function generateGrid() {
   cellHeight = height / GRIDSIZE;
 
   // convert Level into 2D array
-  for (let i = 0; i < level.length; i++) {
-    level[i] = level[i].split(",");
+  for (let i = 0; i < grid.length; i++) {
+    grid[i] = grid[i].split(",");
   }
 
   //loop through the whole 2D array, and turn everything to numbers
   for (let x = 0; x < GRIDSIZE; x++) {
     for (let y = 0; y < GRIDSIZE; y++) {
-      level[x][y] = int(level[x][y]);
+      grid[x][y] = int(grid[x][y]);
     }
   }
 
@@ -276,32 +224,51 @@ function generateGrid() {
 
   for (let x = 0; x < GRIDSIZE; x++) {
     for (let y = 0; y < GRIDSIZE; y++) {
-      level[x][y] = new Pathfinder (x, y);
+      grid[x][y] = new Pathfinder (x, y);
     }
   }
 
   for (let x = 0; x < GRIDSIZE; x++) {
     for (let y = 0; y < GRIDSIZE; y++) {
-      level[x][y].checkNeighbors(level);
+      grid[x][y].checkNeighbors(grid);
     }
   } 
 }
 
 function mouseClicked() {
+  // get the cell where you are clicking
   let cellX = floor(mouseX / cellWidth);
   let cellY = floor(mouseY / cellHeight);
-  enemies.health -= 10;
-  console.log(enemies.health);
 
-  // if (cellX >= 0 && cellX < GRIDSIZE && cellY >= 0 && cellY < GRIDSIZE) {
-  //   if (levelPath[cellX][cellY] === 1){
-  //     levelPath[cellX][cellY] = 4;
-  //     console.log("mouseClicked");
-  //   }
-  // }
-  // console.log(cellX, cellY);
-  // console.log(enemies.x, enemies.y);
-  enemies.move();
+  enemy.health -= 10;
+  console.log(enemy.health);
+
+  enemy.move();
+}
+
+// display grid
+function displayLevel() {
+  // textAlign(CENTER);
+  //textStyle(BOLDITALIC);
+  fill("Blue");
+  textSize(24);
+  text("Level: " + level, width - 120, 25);
+}
+
+// display score
+function displayScore() {
+  // textAlign(CENTER);
+  //textStyle(BOLDITALIC);
+  fill("blue");
+  textSize(24);
+  text("Score: " + score, width - 121, 55);
+}
+
+function changeDisplay() {
+  if (!enemy.isEnemyAlive && enemies.length === 0) {
+    level += 1;
+    score = numberOfEnemies * 100;
+  }
 }
 
 // ************************************************************ TEST *******************************************************************
@@ -360,7 +327,7 @@ class Pathfinder {
     this.previous = undefined;
     this.wall = false;
   }
-  // create and color rects to use when display level
+  // create and color rects to use when display grid
   displayGrid(color) {
     strokeWeight(0);
     fill(color);
@@ -370,24 +337,24 @@ class Pathfinder {
     rect(this.x * cellWidth, this.y * cellHeight, cellWidth - 1, cellHeight - 1);
   }
 
-  checkNeighbors(level) {
+  checkNeighbors(grid) {
     let x = this.x;
     let y = this. y;
     // Check neighbors
     if (x < GRIDSIZE - 1) {
-      this.neighborsToCheck.push(level[x + 1] [y]);
+      this.neighborsToCheck.push(grid[x + 1] [y]);
     }
 
     if (x > 0) {
-      this.neighborsToCheck.push(level[x - 1] [y]);
+      this.neighborsToCheck.push(grid[x - 1] [y]);
     }
 
     if (y < GRIDSIZE - 1) {
-      this.neighborsToCheck.push(level[x] [y + 1]);
+      this.neighborsToCheck.push(grid[x] [y + 1]);
     }
     
     if (y > 0) {
-      this.neighborsToCheck.push(level[x] [y - 1]);
+      this.neighborsToCheck.push(grid[x] [y - 1]);
     }
   }
 }
@@ -409,7 +376,7 @@ function findPath () {
       if (currentValue === endingPoint) {
         endScreenDisplay = "Solution Found";
         console.log(endScreenDisplay);
-        // enemies.setStartingLocation();
+        // enemy.setStartingLocation();
         isPathFound = true;
         console.log(isPathFound);
         console.log(path);
@@ -470,20 +437,19 @@ function checkDistance(a , b) {
   return distance;
 }
 
-
-
-
-// move() {
-//   if (isPathFound && finishMakingPath) {
-//     console.log(levelPath);
-//     console.log(this);
-//     levelPath[this.x][this.y] = 0;
-//     this.pathLocation += 1;
-//     console.log(this.pathLocation);
-//     console.log(path);
-//     this.y = this.followPath[this.pathLocation].y;
-//     this.x = this.followPath[this.pathLocation].x;
-//     levelPath[this.x][this.y] = 2;
-//     console.log("have moved");
-//   }
-// }
+function makePathForEnemy() {
+    //find the path
+    if (isPathFound) {
+      path = [];
+      let value = currentValue;
+      while (value.previous) {
+        path.push(value.previous);
+        value = value.previous;
+      }
+    }
+  
+    while(path.length > 0) {
+      pathToFollow.push(path.pop());
+  
+    }
+}
