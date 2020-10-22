@@ -14,13 +14,13 @@ WE have made a similar version of the Lord's mobile Kingdom game. But we have pu
 - add different speeds and the numbers of enemies
 
 ## Nice to have list
-- keep track of the money and be able to use it to buy guns
 - have a starting and a ending page
+- some kind of sound effects
 - animation of guns and enemies
+- keep track of the money and be able to use it to buy guns
 - randomising maps
 - able to choose different guns
 - able to shut off the sound
-- some kind of sound effects
 
 
 
