@@ -7,11 +7,12 @@ WE have made a similar version of the Lord's mobile Kingdom game. But we have pu
 ## Need to Have List
 
 <!-- - have a pathfinder for the enemies -->
-- be able make multipal targets
+<!-- - be able make multipal targets -->
 <!-- - show a health bar for the enemies -->
 - be able to place guns at different spots that shot targets
 <!-- - keep track of the score -->
 - add different speeds and the numbers of enemies
+- give the enemies to ablity to move by themself
 
 ## Nice to have list
 - have a starting and a ending page
@@ -28,6 +29,5 @@ WE have made a similar version of the Lord's mobile Kingdom game. But we have pu
 
 ## To Do
 <!-- make a better health bar -->
-<!-- make the enemies an array, so we can make multipul enemies, and display them
-Kinda Working-->
-<!-- make a timer for the enemies movement -->
+<!-- make the enemies an array, so we can make multipul enemies, and display -->
+make a timer for the enemies movement

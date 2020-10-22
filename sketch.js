@@ -31,7 +31,7 @@ let endScreenDisplay;
 let grid, levelPath;
 
 let enemies = [];
-let enemy;
+// let enemies;
 let numberOfEnemies = 2;
 let enemyX = 0;
 let enemyY = 0;
@@ -45,6 +45,11 @@ let x, y, isDragging;
 
 let score = 0;
 let level = 1;
+
+let enemyTime; // timer for spawning enemies
+let spawnTime = 5000;
+
+let newEnemySpawn;
 
 function preload() {
   grid = loadStrings("assets/level1.txt");
@@ -68,17 +73,18 @@ function setup() {
 
   cellsToCheck.push(startingPoint);
 
-  enemy = new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth, enemyHealth);
-  for (let i = 0; i < numberOfEnemies; i++) {
-    enemies[i] = enemy;
-  }
-
+  // for (let i = 0; i < numberOfEnemies; i++) {
+  enemies.push(new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth, enemyHealth));
+  // }
+  // ***************************************  //
   canon = loadImage("canon.jpg");
   canonXCordinate = windowWidth - windowWidth/1.11;
   canonYCordinate = windowHeight - windowHeight/1.82;
   canonWidth = cellWidth*3;
   canonHeight = cellHeight*3;
 
+  enemyTime = new Timer(spawnTime);
+  newEnemySpawn = new Timer(2000);
 }
 
 function draw() {
@@ -87,15 +93,29 @@ function draw() {
   findPath();
   displayPath();
   makePathForEnemy();
-  enemy.enemyAlive();
   
-  if (enemy.isEnemyAlive) {
-    enemy.display();
-    enemy.healthBar();
+  if (enemies.length < numberOfEnemies){
+    if (newEnemySpawn.isDone() ) {
+      console.log("new enemy");
+      enemies.push(new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth, enemyHealth));
+      newEnemySpawn.reset();
+    }
   }
+
+  // if(enemyTime.isDone()) {
+  for(let i = 0; i < enemies.length; i++) {
+    enemies[i].enemyAlive();
+    
+    if (enemies[i].isEnemyAlive) {
+      enemies[i].display();
+      enemies[i].healthBar();  
+    }
+  }
+  enemyTime.reset();
+  // }
   displayLevel();
   displayScore();
-  changeDisplay()
+  changeDisplay(); // changes the level and score displays
 }
 
 class Enemy {
@@ -115,20 +135,21 @@ class Enemy {
 
     this.healthBarWidth = width;
     this.healthBarHeight = height / 3;
+
+    this.healthDisplay = 0;
   }
 
   move() {
-    if (isPathFound) {
-      this.pathLocation += 1;
-      levelPath[this.x][this.y] = 0;
-      this.y = this.followPath[this.pathLocation].y;
-      this.x = this.followPath[this.pathLocation].x;
-      levelPath[this.x][this.y] = 2;
-      console.log("have moved");
-    }
+    this.pathLocation += 1;
+    levelPath[this.x][this.y] = 0;
+    this.y = this.followPath[this.pathLocation].y;
+    this.x = this.followPath[this.pathLocation].x;
+    levelPath[this.x][this.y] = 2;
+    console.log("have moved");
   }
 
   display() {
+    // console.log("display working");
     levelPath[this.x][this.y] = 2;
 
     for (let x = 0; x < GRIDSIZE; x++) {
@@ -142,25 +163,24 @@ class Enemy {
   }
 
   healthBar() {
+    //console.log("working");
     noFill();
-    // stroke();
     strokeWeight(2);
     rect(this.x * this.width, this.y * this.height - 20, this.healthBarWidth, this.healthBarHeight, 10, 10);
 
-    noStroke();
     if (this.health <= 100 && this.health >= 60) {
-      fill("green");
-      rect(this.x * this.width, this.y * this.height - 20, this.healthBarWidth, this.healthBarHeight, 10, 10);
+      fill(0, 255, 0);
+      rect(this.x * this.width, this.y * this.height - 20, this.healthBarWidth - this.healthDisplay, this.healthBarHeight, 10, 10);
 
     }
     else if (this.health < 90 && this.health >= 30) {
 
       fill("yellow");
-      rect(this.x * this.width, this.y * this.height - 20, this.healthBarWidth - 20, this.healthBarHeight, 10, 10);
+      rect(this.x * this.width, this.y * this.height - 20, this.healthBarWidth - this.healthDisplay, this.healthBarHeight, 10, 10);
     }
     else if (this.health < 60 && this.health > 0) {
       fill("red");
-      rect(this.x * this.width, this.y * this.height - 20, this.healthBarWidth - 40, this.healthBarHeight, 10, 10);
+      rect(this.x * this.width, this.y * this.height - 20, this.healthBarWidth - this.healthDisplay, this.healthBarHeight, 10, 10);
     }
   }
 
@@ -240,10 +260,15 @@ function mouseClicked() {
   let cellX = floor(mouseX / cellWidth);
   let cellY = floor(mouseY / cellHeight);
 
-  enemy.health -= 10;
-  console.log(enemy.health);
-
-  enemy.move();
+  if (isPathFound){
+    for(let i = 0; i < enemies.length; i++) {
+      enemies[i].move();
+      enemies[i].health -= 10;
+      enemies[i].healthDisplay += 6;
+    }
+    // console.log(enemies.healthDisplay);
+    // console.log(enemies.health);
+  }
 }
 
 // display grid
@@ -265,7 +290,7 @@ function displayScore() {
 }
 
 function changeDisplay() {
-  if (!enemy.isEnemyAlive && enemies.length === 0) {
+  if (enemies.length < numberOfEnemies && !enemies.isEnemyAlive) {
     level += 1;
     score = numberOfEnemies * 100;
   }
@@ -332,7 +357,7 @@ class Pathfinder {
     strokeWeight(0);
     fill(color);
     if (this.wall) {
-      fill(0, 255, 0);
+      fill("green");
     }
     rect(this.x * cellWidth, this.y * cellHeight, cellWidth - 1, cellHeight - 1);
   }
@@ -376,7 +401,7 @@ function findPath () {
       if (currentValue === endingPoint) {
         endScreenDisplay = "Solution Found";
         console.log(endScreenDisplay);
-        // enemy.setStartingLocation();
+        // enemies.setStartingLocation();
         isPathFound = true;
         console.log(isPathFound);
         console.log(path);
@@ -438,18 +463,40 @@ function checkDistance(a , b) {
 }
 
 function makePathForEnemy() {
-    //find the path
-    if (isPathFound) {
-      path = [];
-      let value = currentValue;
-      while (value.previous) {
-        path.push(value.previous);
-        value = value.previous;
-      }
+  //find the path
+  if (isPathFound) {
+    path = [];
+    let value = currentValue;
+    while (value.previous) {
+      path.push(value.previous);
+      value = value.previous;
     }
+  }
   
-    while(path.length > 0) {
-      pathToFollow.push(path.pop());
-  
-    }
+  while(path.length > 0) {
+    pathToFollow.push(path.pop());
+
+  }
+}
+//*************************************************************************************************************************************/
+
+class Timer {
+  constructor(waitTime) {
+    this.waitTime = waitTime;
+    this.beginTime = millis();
+    this.endTime = this.beginTime + this.waitTime;
+  }
+
+  isDone() {
+    return millis() >= this.endTime;
+  }
+
+  reset() {
+    this.beginTime = millis();
+    this.endTime = this.beginTime + this.waitTime;
+  }
+
+  setWaitTime(waitTime) {
+    this.waitTime = waitTime;
+  }
 }
