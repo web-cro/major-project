@@ -12,7 +12,7 @@ WE have made a similar version of the Lord's mobile Kingdom game. But we have pu
 - be able to place guns at different spots that shot targets
 <!-- - keep track of the score -->
 - add different speeds and the numbers of enemies
-- give the enemies to ablity to move by themself
+<!-- - give the enemies to ablity to move by themself -->
 
 ## Nice to have list
 - have a starting and a ending page
@@ -30,4 +30,9 @@ WE have made a similar version of the Lord's mobile Kingdom game. But we have pu
 ## To Do
 <!-- make a better health bar -->
 <!-- make the enemies an array, so we can make multipul enemies, and display -->
-make a timer for the enemies movement
+<!-- make a timer for the enemies movement -->
+<!-- - enemies.isEnemyAlive isn't working -->
+- fix the score and level change function
+- make the spawnTime and movementDelay decrease as the game progresses
+
+- SHOWVIK -- working on the gun

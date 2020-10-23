@@ -31,7 +31,6 @@ let endScreenDisplay;
 let grid, levelPath;
 
 let enemies = [];
-// let enemies;
 let numberOfEnemies = 2;
 let enemyX = 0;
 let enemyY = 0;
@@ -46,10 +45,14 @@ let x, y, isDragging;
 let score = 0;
 let level = 1;
 
-let enemyTime; // timer for spawning enemies
+// timer for spawning enemies
+let enemyTime;
 let spawnTime = 5000;
-
 let newEnemySpawn;
+
+// making enemies move by themself on a timer
+let moveTime;
+let movementDelay = 900;
 
 function preload() {
   grid = loadStrings("assets/level1.txt");
@@ -73,18 +76,23 @@ function setup() {
 
   cellsToCheck.push(startingPoint);
 
-  // for (let i = 0; i < numberOfEnemies; i++) {
+  // push enemy into thee enemiesArray
   enemies.push(new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth, enemyHealth));
-  // }
-  // ***************************************  //
+
+
+  // ***************************************//
   canon = loadImage("canon.jpg");
   canonXCordinate = windowWidth - windowWidth/1.11;
   canonYCordinate = windowHeight - windowHeight/1.82;
   canonWidth = cellWidth*3;
   canonHeight = cellHeight*3;
 
+  // Spawn Delay
   enemyTime = new Timer(spawnTime);
-  newEnemySpawn = new Timer(2000);
+  newEnemySpawn = new Timer(spawnTime);
+
+  // movement Delay
+  moveTime = new Timer(movementDelay);
 }
 
 function draw() {
@@ -94,25 +102,10 @@ function draw() {
   displayPath();
   makePathForEnemy();
   
-  if (enemies.length < numberOfEnemies){
-    if (newEnemySpawn.isDone() ) {
-      console.log("new enemy");
-      enemies.push(new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth, enemyHealth));
-      newEnemySpawn.reset();
-    }
-  }
+  spawnMultipulEnemies();
 
-  // if(enemyTime.isDone()) {
-  for(let i = 0; i < enemies.length; i++) {
-    enemies[i].enemyAlive();
-    
-    if (enemies[i].isEnemyAlive) {
-      enemies[i].display();
-      enemies[i].healthBar();  
-    }
-  }
-  enemyTime.reset();
-  // }
+  moveEnemies();
+
   displayLevel();
   displayScore();
   changeDisplay(); // changes the level and score displays
@@ -145,7 +138,7 @@ class Enemy {
     this.y = this.followPath[this.pathLocation].y;
     this.x = this.followPath[this.pathLocation].x;
     levelPath[this.x][this.y] = 2;
-    console.log("have moved");
+    // console.log("have moved");
   }
 
   display() {
@@ -185,8 +178,10 @@ class Enemy {
   }
 
   enemyAlive() {
-    if (this.health <= 0) {
-      this.isEnemyAlive = false;
+    for(let i = 0; i < enemies.length; i++) {
+      if (enemies[i].health <= 0) {
+        enemies[i].isEnemyAlive = false;
+      }
     }
   }
 }
@@ -260,15 +255,6 @@ function mouseClicked() {
   let cellX = floor(mouseX / cellWidth);
   let cellY = floor(mouseY / cellHeight);
 
-  if (isPathFound){
-    for(let i = 0; i < enemies.length; i++) {
-      enemies[i].move();
-      enemies[i].health -= 10;
-      enemies[i].healthDisplay += 6;
-    }
-    // console.log(enemies.healthDisplay);
-    // console.log(enemies.health);
-  }
 }
 
 // display grid
@@ -290,9 +276,56 @@ function displayScore() {
 }
 
 function changeDisplay() {
-  if (enemies.length < numberOfEnemies && !enemies.isEnemyAlive) {
-    level += 1;
-    score = numberOfEnemies * 100;
+  for (let i = 0; i < numberOfEnemies; i++){
+    // if (enemies[i].isEnemyAlive === false) {
+      level ++;
+      score = numberOfEnemies * 100;
+    // }
+  }
+}
+
+function spawnMultipulEnemies() {
+  if (enemies.length < numberOfEnemies){
+    if (newEnemySpawn.isDone() ) {
+      console.log("new enemy");
+      enemies.push(new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth, enemyHealth));
+      newEnemySpawn.reset();
+    }
+  }
+
+  for(let i = 0; i < enemies.length; i++) {
+    // console.log(enemies[i].isEnemyAlive);
+    enemies[i].enemyAlive();
+
+    if (enemies[i].isEnemyAlive) {
+      enemies[i].display();
+      enemies[i].healthBar();  
+    }
+    // else {
+    //   enemies[i].splice(i, 1);
+    // }
+  }
+  enemyTime.reset();
+}
+
+function moveEnemies() {
+  if (isPathFound){
+    if (moveTime.isDone() ) {
+      for(let i = 0; i < enemies.length; i++) {
+        if (enemies[i].isEnemyAlive) {
+          console.log("movement Delay Working");
+          for(let i = 0; i < enemies.length; i++) {
+            enemies[i].move();
+            enemies[i].health -= 10;
+            enemies[i].healthDisplay += 6;
+          }
+          moveTime.reset();
+          // console.log(enemies.healthDisplay);
+          // console.log(enemies.health);
+  
+        }
+      }
+    }
   }
 }
 
