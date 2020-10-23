@@ -36,6 +36,7 @@ let enemyX = 0;
 let enemyY = 0;
 let enemyHealth = 100;
 let pathToFollow = [];
+let deadEnemies = 0;
 
 let canon;
 let canonXCordinate, canonYCordinate, canonWidth, canonHeight;
@@ -52,7 +53,7 @@ let newEnemySpawn;
 
 // making enemies move by themself on a timer
 let moveTime;
-let movementDelay = 900;
+let movementDelay = 1100;
 
 function preload() {
   grid = loadStrings("assets/level1.txt");
@@ -96,7 +97,6 @@ function setup() {
 }
 
 function draw() {
-
   background(0);
   findPath();
   displayPath();
@@ -109,6 +109,8 @@ function draw() {
   displayLevel();
   displayScore();
   changeDisplay(); // changes the level and score displays
+
+  console.log(numberOfEnemies);
 }
 
 class Enemy {
@@ -254,7 +256,9 @@ function mouseClicked() {
   // get the cell where you are clicking
   let cellX = floor(mouseX / cellWidth);
   let cellY = floor(mouseY / cellHeight);
+  console.log(cellX, cellX);
 
+  // levelPath[cellX][cellY] = 4;
 }
 
 // display grid
@@ -276,25 +280,25 @@ function displayScore() {
 }
 
 function changeDisplay() {
-  if (enemies.length === numberOfEnemies){
-    for (let i = 0; i < numberOfEnemies; i++) {
-      if (!enemies[i].isEnemyAlive){
-        level ++;
-        score = numberOfEnemies * 100;
-      }
-    }
-  }
+  // if (deadEnemies >= numberOfEnemies){
+  //   // console.log("working");
+  //   deadEnemies = 0;
+  //   level ++;
+  //   numberOfEnemies = level * 2;
+  //   spawnTime -= 100;
+  //   movementDelay -= 50;
+  // }
 }
 
 function spawnMultipulEnemies() {
-  if (enemies.length < numberOfEnemies){
+  if (enemies.length < numberOfEnemies && deadEnemies !== numberOfEnemies){
     if (newEnemySpawn.isDone() ) {
       console.log("new enemy");
       enemies.push(new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth, enemyHealth));
       newEnemySpawn.reset();
     }
   }
-
+  
   for(let i = 0; i < enemies.length; i++) {
     // console.log(enemies[i].isEnemyAlive);
     enemies[i].enemyAlive();
@@ -303,12 +307,17 @@ function spawnMultipulEnemies() {
       enemies[i].display();
       enemies[i].healthBar();  
     }
+    // else {
+    //   deadEnemies.push(enemies[i]);
+    // }
     // else if (!enemies.isEnemyAlive) {
     //   enemies[i].splice(i, 1);
     // }
-    // else {
-    //   enemies[i].splice(i, 1);
-    // }
+    if (!enemies[i].isEnemyAlive) {
+      enemies.splice(i, 1);
+      deadEnemies += 1;
+      score += 100;
+    }
   }
   enemyTime.reset();
 }
@@ -322,7 +331,7 @@ function moveEnemies() {
           for(let i = 0; i < enemies.length; i++) {
             enemies[i].move();
             enemies[i].health -= 10;
-            enemies[i].healthDisplay += 6;
+            enemies[i].healthDisplay += 10;
           }
           moveTime.reset();
           // console.log(enemies.healthDisplay);
