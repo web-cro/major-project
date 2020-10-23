@@ -76,7 +76,7 @@ function setup() {
 
   cellsToCheck.push(startingPoint);
 
-  // push enemy into thee enemiesArray
+  // push enemy into the enemiesArray
   enemies.push(new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth, enemyHealth));
 
 
@@ -276,11 +276,13 @@ function displayScore() {
 }
 
 function changeDisplay() {
-  for (let i = 0; i < numberOfEnemies; i++){
-    // if (enemies[i].isEnemyAlive === false) {
-      level ++;
-      score = numberOfEnemies * 100;
-    // }
+  if (enemies.length === numberOfEnemies){
+    for (let i = 0; i < numberOfEnemies; i++) {
+      if (!enemies[i].isEnemyAlive){
+        level ++;
+        score = numberOfEnemies * 100;
+      }
+    }
   }
 }
 
@@ -301,6 +303,9 @@ function spawnMultipulEnemies() {
       enemies[i].display();
       enemies[i].healthBar();  
     }
+    // else if (!enemies.isEnemyAlive) {
+    //   enemies[i].splice(i, 1);
+    // }
     // else {
     //   enemies[i].splice(i, 1);
     // }

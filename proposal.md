@@ -32,7 +32,9 @@ WE have made a similar version of the Lord's mobile Kingdom game. But we have pu
 <!-- make the enemies an array, so we can make multipul enemies, and display -->
 <!-- make a timer for the enemies movement -->
 <!-- - enemies.isEnemyAlive isn't working -->
-- fix the score and level change function
+- fix the score and level change function (score = numberOfenemy * 100) and (numberOfenemy = level * 2)
+-- MAYBE -- (level = numberOfEnemy % 2)
 - make the spawnTime and movementDelay decrease as the game progresses
+- find a way to remove enemies from the array
 
 - SHOWVIK -- working on the gun
