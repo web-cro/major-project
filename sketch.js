@@ -1,8 +1,8 @@
-// 2D array A* pathfinder
-// Abdul Raffey
-// October 11, 2020
+// Major Project
+// Abdul Raffey, Showvik Arkay
+// October 24, 2020
 //
-//Work Cite:
+//Work Cite for pathfimder;
 //https://en.wikipedia.org/wiki/A*_search_algorithm
 //https://www.youtube.com/watch?v=aKYlikFAV4k
 //https://www.slant.co/versus/11584/11585/~dijkstra-s-algorithm_vs_a-algorithm
@@ -11,61 +11,58 @@
 //
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
-// **********************************************************************
-//  A* educated guess to find the best path from point A to point B
-//  A* formula is f(n) = g(n) + h(n)
+
+// pathfinder
+let cellsToCheck, cellThatHaveBeenChecked, startingPoint, endingPoint, path, currentValue, isPathFound;
 
 const GRIDSIZE = 16;
-
-let cellsToCheck;
-let cellThatHaveBeenChecked;
-let startingPoint;
-let endingPoint;
 let cellWidth, cellHeight;
-let path;
-let currentValue;
-let isPathFound = false;
 
 let endScreenDisplay;
 
 let grid, levelPath;
 
-let enemies = [];
-let numberOfEnemies = 2;
-let enemyX = 0;
-let enemyY = 0;
-let enemyHealth = 100;
-let pathToFollow = [];
-let deadEnemies = 0;
+// enemies controls
+let enemies, numberOfEnemies, enemyX, enemyY, enemyHealth, pathToFollow, deadEnemies;
 
-let canon;
-let canonXCordinate, canonYCordinate, canonWidth, canonHeight;
-
-let x, y, isDragging;
-
-let score = 0;
-let level = 1;
+// in Game display
+let score, level;
 
 // timer for spawning enemies
-let enemyTime;
-let spawnTime = 5000;
-let newEnemySpawn;
+let enemyTime, spawnTime, newEnemySpawn;
 
 // making enemies move by themself on a timer
-let moveTime;
-let movementDelay = 1100;
+let moveTime, movementDelay;
 
 function preload() {
+  // load preset level
   grid = loadStrings("assets/level1.txt");
   levelPath = loadStrings("assets/level1path.txt");
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+
+  // enemies control
+  enemies = [];
+  enemyX = 0;
+  enemyY = 0;
+  enemyHealth = 100;
+  pathToFollow = [];
+  deadEnemies = 0;
+  spawnTime = 3000;
+  movementDelay = 1100;
+  numberOfEnemies = level * 2;
+
+  // in Game display
+  score = 0;
+  level = 1;
  
+  // pathfinder
   cellsToCheck = [];
   cellThatHaveBeenChecked = [];
   path = [];
+  isPathFound = false;
 
   generateGrid();
 
@@ -80,14 +77,6 @@ function setup() {
   // push enemy into the enemiesArray
   enemies.push(new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth, enemyHealth));
 
-
-  // ***************************************//
-  canon = loadImage("canon.jpg");
-  canonXCordinate = windowWidth - windowWidth/1.11;
-  canonYCordinate = windowHeight - windowHeight/1.82;
-  canonWidth = cellWidth*3;
-  canonHeight = cellHeight*3;
-
   // Spawn Delay
   enemyTime = new Timer(spawnTime);
   newEnemySpawn = new Timer(spawnTime);
@@ -97,27 +86,24 @@ function setup() {
 }
 
 function draw() {
+  // pathfinder and path display
   background(0);
   findPath();
   displayPath();
   makePathForEnemy();
   
+  // spawn and move enemies
   spawnMultipulEnemies();
-
   moveEnemies();
 
+  // In game display
   displayLevel();
   displayScore();
   changeDisplay(); // changes the level and score displays
-
-  console.log(numberOfEnemies);
 }
 
 class Enemy {
   constructor(x, y, path, height, width, health, healthBarColor) {
-    this.startX = x;
-    this.startY = y;
-    this.color = color(random (255), random (255), random (255));
     this.width = width;
     this.height = height;
     this.health = health;
@@ -134,17 +120,17 @@ class Enemy {
     this.healthDisplay = 0;
   }
 
+  // controls enemies movement
   move() {
     this.pathLocation += 1;
     levelPath[this.x][this.y] = 0;
     this.y = this.followPath[this.pathLocation].y;
     this.x = this.followPath[this.pathLocation].x;
     levelPath[this.x][this.y] = 2;
-    // console.log("have moved");
   }
 
+  // displays enemies on the grid
   display() {
-    // console.log("display working");
     levelPath[this.x][this.y] = 2;
 
     for (let x = 0; x < GRIDSIZE; x++) {
@@ -157,8 +143,8 @@ class Enemy {
     }
   }
 
+  // displays enemies health and controls and controls enemies health bar color
   healthBar() {
-    //console.log("working");
     noFill();
     strokeWeight(2);
     rect(this.x * this.width, this.y * this.height - 20, this.healthBarWidth, this.healthBarHeight, 10, 10);
@@ -179,6 +165,7 @@ class Enemy {
     }
   }
 
+  // checks to see if the enemies are alive
   enemyAlive() {
     for(let i = 0; i < enemies.length; i++) {
       if (enemies[i].health <= 0) {
@@ -227,7 +214,7 @@ function generateGrid() {
     }
   }
 
-  // convert Level Path into 2D array
+  // convert LevelPath into 2D array
   for (let i = 0; i < levelPath.length; i++) {
     levelPath[i] = levelPath[i].split(",");
   }
@@ -256,40 +243,38 @@ function mouseClicked() {
   // get the cell where you are clicking
   let cellX = floor(mouseX / cellWidth);
   let cellY = floor(mouseY / cellHeight);
-  console.log(cellX, cellX);
+  console.log(cellX, cellY);
 
-  // levelPath[cellX][cellY] = 4;
 }
 
-// display grid
+// display player level
 function displayLevel() {
-  // textAlign(CENTER);
-  //textStyle(BOLDITALIC);
-  fill("Blue");
-  textSize(24);
-  text("Level: " + level, width - 120, 25);
-}
-
-// display score
-function displayScore() {
-  // textAlign(CENTER);
   //textStyle(BOLDITALIC);
   fill("blue");
   textSize(24);
-  text("Score: " + score, width - 121, 55);
+  text("Level: " + level, width - 190, 25);
 }
 
+// display plater score
+function displayScore() {
+  //textStyle(BOLDITALIC);
+  fill("blue");
+  textSize(24);
+  text("Score: " + score, width - 190, 55);
+}
+
+// change level and score display based on player level and increases game difficalty based on player level
 function changeDisplay() {
-  // if (deadEnemies >= numberOfEnemies){
-  //   // console.log("working");
-  //   deadEnemies = 0;
-  //   level ++;
-  //   numberOfEnemies = level * 2;
-  //   spawnTime -= 100;
-  //   movementDelay -= 50;
-  // }
+  if (deadEnemies >= numberOfEnemies){
+    deadEnemies = 0;
+    level ++;
+    numberOfEnemies = level * 2;
+    spawnTime -= 100;
+    movementDelay -= 50;
+  }
 }
 
+// spawn enemies multipul enemies on a delay
 function spawnMultipulEnemies() {
   if (enemies.length < numberOfEnemies && deadEnemies !== numberOfEnemies){
     if (newEnemySpawn.isDone() ) {
@@ -300,19 +285,13 @@ function spawnMultipulEnemies() {
   }
   
   for(let i = 0; i < enemies.length; i++) {
-    // console.log(enemies[i].isEnemyAlive);
     enemies[i].enemyAlive();
 
     if (enemies[i].isEnemyAlive) {
       enemies[i].display();
       enemies[i].healthBar();  
     }
-    // else {
-    //   deadEnemies.push(enemies[i]);
-    // }
-    // else if (!enemies.isEnemyAlive) {
-    //   enemies[i].splice(i, 1);
-    // }
+
     if (!enemies[i].isEnemyAlive) {
       enemies.splice(i, 1);
       deadEnemies += 1;
@@ -322,6 +301,7 @@ function spawnMultipulEnemies() {
   enemyTime.reset();
 }
 
+// move eneimes on a preset delay
 function moveEnemies() {
   if (isPathFound){
     if (moveTime.isDone() ) {
@@ -334,56 +314,32 @@ function moveEnemies() {
             enemies[i].healthDisplay += 10;
           }
           moveTime.reset();
-          // console.log(enemies.healthDisplay);
-          // console.log(enemies.health);
-  
         }
       }
     }
   }
 }
 
-// ************************************************************ TEST *******************************************************************
-// function move() {
-//   for (let i = 1; i <= path.length; i++) { 
-//     levelPath[enemyX][enemyY] = 0;
-//     enemyY = path[path.length - i].y;
-//     enemyX = path[path.length - i].x;
-//     levelPath[enemyX][enemyY] = 2;
-//     console.log("moved");
-//   }
-// }
+class Timer {
+  constructor(waitTime) {
+    this.waitTime = waitTime;
+    this.beginTime = millis();
+    this.endTime = this.beginTime + this.waitTime;
+  }
 
+  isDone() {
+    return millis() >= this.endTime;
+  }
 
-// function canonShooter(){
-//   imageMode(CENTER);
-//   image(canon, canonXCordinate, canonYCordinate, canonWidth, canonHeight);
-// }
+  reset() {
+    this.beginTime = millis();
+    this.endTime = this.beginTime + this.waitTime;
+  }
 
-
-// function mouseReleased() {
-//   isDragging = false;
-// }
-
-// function isMouseInsideCanon() {
-//   return mouseX > canonXCordinate &&
-//          mouseX < canonXCordinate + canonWidth &&
-//          mouseY > canonYCordinate &&
-//          mouseY < canonYCordinate + canonHeight;
-// }
-
-// function moveRectangle() {
-//   // move rectangle if required
-//   if (isDragging) {
-//     canonXCordinate = mouseX - canonWidth/2;
-//     canonYCordinate = mouseY - canonHeight/2;
-//   }
-// }
-// function mousePressed() {
-//   if (isMouseInsideCanon()) {
-//     isDragging = true;
-//   }
-// }
+  setWaitTime(waitTime) {
+    this.waitTime = waitTime;
+  }
+}
 
 // *********************************************************** PATHFINDER ***************************************************************
 class Pathfinder {
@@ -520,30 +476,9 @@ function makePathForEnemy() {
     }
   }
   
+  // push path into an array for the enimes to follow
   while(path.length > 0) {
     pathToFollow.push(path.pop());
 
-  }
-}
-//*************************************************************************************************************************************/
-
-class Timer {
-  constructor(waitTime) {
-    this.waitTime = waitTime;
-    this.beginTime = millis();
-    this.endTime = this.beginTime + this.waitTime;
-  }
-
-  isDone() {
-    return millis() >= this.endTime;
-  }
-
-  reset() {
-    this.beginTime = millis();
-    this.endTime = this.beginTime + this.waitTime;
-  }
-
-  setWaitTime(waitTime) {
-    this.waitTime = waitTime;
   }
 }
