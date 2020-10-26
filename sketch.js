@@ -26,7 +26,8 @@ let grid, levelPath;
 let enemies, numberOfEnemies, enemyX, enemyY, enemyHealth, pathToFollow, deadEnemies;
 
 // in Game display
-let score, level;
+let score, level, screenState;
+let highScore = 0;
 
 // timer for spawning enemies
 let enemyTime, spawnTime, newEnemySpawn;
@@ -43,6 +44,12 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
 
+  // in Game display
+  score = 0;
+  level = 1;
+  highScore = getItem("highScore");
+  screenState = "startScreen";
+
   // enemies control
   enemies = [];
   enemyX = 0;
@@ -53,10 +60,6 @@ function setup() {
   spawnTime = 3000;
   movementDelay = 1100;
   numberOfEnemies = level * 2;
-
-  // in Game display
-  score = 0;
-  level = 1;
  
   // pathfinder
   cellsToCheck = [];
@@ -86,20 +89,222 @@ function setup() {
 }
 
 function draw() {
-  // pathfinder and path display
-  background(0);
-  findPath();
-  displayPath();
-  makePathForEnemy();
-  
-  // spawn and move enemies
-  spawnMultipulEnemies();
-  moveEnemies();
+  rungame();
+}
 
-  // In game display
-  displayLevel();
-  displayScore();
-  changeDisplay(); // changes the level and score displays
+function rungame() {
+  if (screenState === "startScreen") {
+    background("white");
+    startScreen();
+  }
+
+  else if (screenState === "gameScreen") {
+    // pathfinder and path display
+    background(0);
+    findPath();
+    displayPath();
+    makePathForEnemy();
+    
+    // spawn and move enemies
+    spawnMultipulEnemies();
+    moveEnemies();
+
+    // In game display
+    CountHighScore();
+    displayLevel();
+    displayScore();
+    changeDisplay(); // changes the level and score displays
+  }
+}
+
+function displayPath() {
+// display grid
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      grid[x][y].displayGrid(color(230,230,230));
+      if (levelPath[x][y] === 3) {
+        grid[x][y].displayGrid(color("red"));
+      }
+    }
+  }
+
+  // Make wall where need
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      if (levelPath[x][y] === 1) {
+        grid[x][y].wall = true;
+      }
+    }
+  }
+
+}
+
+function generateGrid() {
+  cellWidth = width / GRIDSIZE;
+  cellHeight = height / GRIDSIZE;
+
+  // convert Level into 2D array
+  for (let i = 0; i < grid.length; i++) {
+    grid[i] = grid[i].split(",");
+  }
+
+  //loop through the whole 2D array, and turn everything to numbers
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      grid[x][y] = int(grid[x][y]);
+    }
+  }
+
+  // convert LevelPath into 2D array
+  for (let i = 0; i < levelPath.length; i++) {
+    levelPath[i] = levelPath[i].split(",");
+  }
+
+  //loop through the whole 2D array, and turn everything to numbers
+  for (let y = 0; y < GRIDSIZE; y++) {
+    for (let x = 0; x < GRIDSIZE; x++) {
+      levelPath[y][x] = int(levelPath[y][x]);
+    }
+  }
+
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      grid[x][y] = new Pathfinder (x, y);
+    }
+  }
+
+  for (let x = 0; x < GRIDSIZE; x++) {
+    for (let y = 0; y < GRIDSIZE; y++) {
+      grid[x][y].checkNeighbors(grid);
+    }
+  } 
+}
+
+function mouseClicked() {
+  // get the cell where you are clicking
+  let cellX = floor(mouseX / cellWidth);
+  let cellY = floor(mouseY / cellHeight);
+  // console.log(cellX, cellY);
+
+  if (screenState === "startScreen") {
+    screenState = "gameScreen";
+  }
+
+}
+
+function startScreen() {
+  //   controls the Start screen text, its style, location, and size
+  textAlign(CENTER);
+  //textStyle(BOLDITALIC);
+  textSize(18);
+  text("Start Screen", width / 2, height / 2);
+  text("Click Anywhere to Start", width / 2, height / 2 + 20);
+
+  if (getItem("highScore") !== null) {
+    text("High Score: " + highScore, width - 190, 25);
+  }
+  else {
+    text("High Score: " + 0, width - 190, 25);
+  }
+}
+
+function CountHighScore() {
+  if (score > highScore) {
+    storeItem("highScore", score);
+  }
+}
+
+// display player level
+function displayLevel() {
+  //textStyle(BOLDITALIC);
+  fill("blue");
+  textSize(24);
+  text("Level: " + level, width - 190, 25);
+}
+
+// display plater score
+function displayScore() {
+  //textStyle(BOLDITALIC);
+  fill("blue");
+  textSize(24);
+  text("Score: " + score, width - 190, 55);
+}
+
+// change level and score display based on player level and increases game difficalty based on player level
+function changeDisplay() {
+  if (deadEnemies >= numberOfEnemies){
+    deadEnemies = 0;
+    level ++;
+    numberOfEnemies = level * 2;
+    spawnTime -= 100;
+    movementDelay -= 50;
+  }
+}
+
+// spawn enemies multipul enemies on a delay
+function spawnMultipulEnemies() {
+  if (enemies.length <= numberOfEnemies && deadEnemies <= numberOfEnemies){
+    if (newEnemySpawn.isDone() ) {
+      console.log("new enemy");
+      enemies.push(new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth, enemyHealth));
+      newEnemySpawn.reset();
+    }
+  }
+  
+  for(let i = 0; i < enemies.length; i++) {
+    enemies[i].enemyAlive();
+
+    if (enemies[i].isEnemyAlive) {
+      enemies[i].display();
+      enemies[i].healthBar();  
+    }
+
+    else {
+      enemies.splice(i, 1);
+      deadEnemies += 1;
+      score += 100;
+    }
+  }
+  enemyTime.reset();
+}
+
+// move eneimes on a preset delay
+function moveEnemies() {
+  if (isPathFound){
+    if (moveTime.isDone() ) {
+      for(let i = 0; i < enemies.length; i++) {
+        if (enemies[i].isEnemyAlive) {
+          for(let i = 0; i < enemies.length; i++) {
+            enemies[i].move();
+            enemies[i].health -= 10;
+            enemies[i].healthDisplay += 10;
+          }
+          moveTime.reset();
+        }
+      }
+    }
+  }
+}
+
+class Timer {
+  constructor(waitTime) {
+    this.waitTime = waitTime;
+    this.beginTime = millis();
+    this.endTime = this.beginTime + this.waitTime;
+  }
+
+  isDone() {
+    return millis() >= this.endTime;
+  }
+
+  reset() {
+    this.beginTime = millis();
+    this.endTime = this.beginTime + this.waitTime;
+  }
+
+  setWaitTime(waitTime) {
+    this.waitTime = waitTime;
+  }
 }
 
 class Enemy {
@@ -172,172 +377,6 @@ class Enemy {
         enemies[i].isEnemyAlive = false;
       }
     }
-  }
-}
-
-
-function displayPath() {
-// display grid
-  for (let x = 0; x < GRIDSIZE; x++) {
-    for (let y = 0; y < GRIDSIZE; y++) {
-      grid[x][y].displayGrid(color(230,230,230));
-      if (levelPath[x][y] === 3) {
-        grid[x][y].displayGrid(color("red"));
-      }
-    }
-  }
-
-  // Make wall where need
-  for (let x = 0; x < GRIDSIZE; x++) {
-    for (let y = 0; y < GRIDSIZE; y++) {
-      if (levelPath[x][y] === 1) {
-        grid[x][y].wall = true;
-      }
-    }
-  }
-
-}
-
-function generateGrid() {
-  cellWidth = width / GRIDSIZE;
-  cellHeight = height / GRIDSIZE;
-
-  // convert Level into 2D array
-  for (let i = 0; i < grid.length; i++) {
-    grid[i] = grid[i].split(",");
-  }
-
-  //loop through the whole 2D array, and turn everything to numbers
-  for (let x = 0; x < GRIDSIZE; x++) {
-    for (let y = 0; y < GRIDSIZE; y++) {
-      grid[x][y] = int(grid[x][y]);
-    }
-  }
-
-  // convert LevelPath into 2D array
-  for (let i = 0; i < levelPath.length; i++) {
-    levelPath[i] = levelPath[i].split(",");
-  }
-
-  //loop through the whole 2D array, and turn everything to numbers
-  for (let y = 0; y < GRIDSIZE; y++) {
-    for (let x = 0; x < GRIDSIZE; x++) {
-      levelPath[y][x] = int(levelPath[y][x]);
-    }
-  }
-
-  for (let x = 0; x < GRIDSIZE; x++) {
-    for (let y = 0; y < GRIDSIZE; y++) {
-      grid[x][y] = new Pathfinder (x, y);
-    }
-  }
-
-  for (let x = 0; x < GRIDSIZE; x++) {
-    for (let y = 0; y < GRIDSIZE; y++) {
-      grid[x][y].checkNeighbors(grid);
-    }
-  } 
-}
-
-function mouseClicked() {
-  // get the cell where you are clicking
-  let cellX = floor(mouseX / cellWidth);
-  let cellY = floor(mouseY / cellHeight);
-  console.log(cellX, cellY);
-
-}
-
-// display player level
-function displayLevel() {
-  //textStyle(BOLDITALIC);
-  fill("blue");
-  textSize(24);
-  text("Level: " + level, width - 190, 25);
-}
-
-// display plater score
-function displayScore() {
-  //textStyle(BOLDITALIC);
-  fill("blue");
-  textSize(24);
-  text("Score: " + score, width - 190, 55);
-}
-
-// change level and score display based on player level and increases game difficalty based on player level
-function changeDisplay() {
-  if (deadEnemies >= numberOfEnemies){
-    deadEnemies = 0;
-    level ++;
-    numberOfEnemies = level * 2;
-    spawnTime -= 100;
-    movementDelay -= 50;
-  }
-}
-
-// spawn enemies multipul enemies on a delay
-function spawnMultipulEnemies() {
-  if (enemies.length < numberOfEnemies && deadEnemies !== numberOfEnemies){
-    if (newEnemySpawn.isDone() ) {
-      console.log("new enemy");
-      enemies.push(new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth, enemyHealth));
-      newEnemySpawn.reset();
-    }
-  }
-  
-  for(let i = 0; i < enemies.length; i++) {
-    enemies[i].enemyAlive();
-
-    if (enemies[i].isEnemyAlive) {
-      enemies[i].display();
-      enemies[i].healthBar();  
-    }
-
-    if (!enemies[i].isEnemyAlive) {
-      enemies.splice(i, 1);
-      deadEnemies += 1;
-      score += 100;
-    }
-  }
-  enemyTime.reset();
-}
-
-// move eneimes on a preset delay
-function moveEnemies() {
-  if (isPathFound){
-    if (moveTime.isDone() ) {
-      for(let i = 0; i < enemies.length; i++) {
-        if (enemies[i].isEnemyAlive) {
-          console.log("movement Delay Working");
-          for(let i = 0; i < enemies.length; i++) {
-            enemies[i].move();
-            enemies[i].health -= 10;
-            enemies[i].healthDisplay += 10;
-          }
-          moveTime.reset();
-        }
-      }
-    }
-  }
-}
-
-class Timer {
-  constructor(waitTime) {
-    this.waitTime = waitTime;
-    this.beginTime = millis();
-    this.endTime = this.beginTime + this.waitTime;
-  }
-
-  isDone() {
-    return millis() >= this.endTime;
-  }
-
-  reset() {
-    this.beginTime = millis();
-    this.endTime = this.beginTime + this.waitTime;
-  }
-
-  setWaitTime(waitTime) {
-    this.waitTime = waitTime;
   }
 }
 

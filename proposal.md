@@ -11,12 +11,12 @@ WE have made a similar version of the Lord's mobile Kingdom game. But we have pu
 <!-- - show a health bar for the enemies -->
 - be able to place guns at different spots that shot targets
 <!-- - keep track of the score -->
-- add different speeds and the numbers of enemies
+<!-- - add different speeds and the numbers of enemies -->
 <!-- - give the enemies to ablity to move by themself -->
 
 ## Nice to have list
-- have a starting and a ending page
-- use local storage to keep track of the high score
+<!-- - have a starting and a ending page -->
+<!-- - use local storage to keep track of the high score -->
 - some kind of sound effects
 - animation of guns and enemies
 - keep track of the money and be able to use it to buy guns
@@ -37,5 +37,6 @@ WE have made a similar version of the Lord's mobile Kingdom game. But we have pu
 <!-- -- MAYBE -- (level = numberOfEnemy % 2) -->
 <!-- - make the spawnTime and movementDelay decrease as the game progresses -->
 <!-- - find a way to remove enemies from the array -->
+- fix the problem where 2 more then need enemies spawn
 
 - SHOWVIK -- working on the gun
