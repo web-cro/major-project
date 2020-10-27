@@ -35,6 +35,9 @@ let enemyTime, spawnTime, newEnemySpawn;
 // making enemies move by themself on a timer
 let moveTime, movementDelay;
 
+let numberOfGuns, gunX, gunY, bulletTime, guns;
+let bulletDelay = 1000;
+
 function preload() {
   // load preset level
   grid = loadStrings("assets/level1.txt");
@@ -60,6 +63,10 @@ function setup() {
   spawnTime = 3000;
   movementDelay = 1100;
   numberOfEnemies = level * 2;
+  numberOfGuns = level * 1;
+
+  guns = [];
+  bulletTime = new Timer(bulletDelay);
  
   // pathfinder
   cellsToCheck = [];
@@ -78,7 +85,7 @@ function setup() {
   cellsToCheck.push(startingPoint);
 
   // push enemy into the enemiesArray
-  enemies.push(new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth, enemyHealth));
+  enemies.push(new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth, enemyHealth, guns));
 
   // Spawn Delay
   enemyTime = new Timer(spawnTime);
@@ -114,6 +121,10 @@ function rungame() {
     displayLevel();
     displayScore();
     changeDisplay(); // changes the level and score displays
+
+    for (let i = 0; i < enemies.length; i++) {
+      enemies[i].canonUpdate();
+    }
   }
 }
 
@@ -184,27 +195,35 @@ function mouseClicked() {
   // get the cell where you are clicking
   let cellX = floor(mouseX / cellWidth);
   let cellY = floor(mouseY / cellHeight);
-  // console.log(cellX, cellY);
 
+  gunX = cellX * cellWidth;
+  gunY = cellY * cellHeight;
+
+  // push gun into the guns Array
+  if (guns.length < level) {
+    guns.push(new Character(gunX, gunY, cellWidth, cellHeight));
+  }
+}
+
+function keyPressed() {
+  // change display
   if (screenState === "startScreen") {
     screenState = "gameScreen";
   }
-
 }
 
 function startScreen() {
   //   controls the Start screen text, its style, location, and size
   textAlign(CENTER);
-  //textStyle(BOLDITALIC);
   textSize(18);
   text("Start Screen", width / 2, height / 2);
-  text("Click Anywhere to Start", width / 2, height / 2 + 20);
+  text("Any Key to Start", width / 2, height / 2 + 20);
 
   if (getItem("highScore") !== null) {
-    text("High Score: " + highScore, width - 190, 25);
+    text("High Score: " + highScore, width - 100, 25);
   }
   else {
-    text("High Score: " + 0, width - 190, 25);
+    text("High Score: " + 0, width - 100, 25);
   }
 }
 
@@ -219,7 +238,7 @@ function displayLevel() {
   //textStyle(BOLDITALIC);
   fill("blue");
   textSize(24);
-  text("Level: " + level, width - 190, 25);
+  text("Level: " + level, width - 100, 25);
 }
 
 // display plater score
@@ -227,7 +246,7 @@ function displayScore() {
   //textStyle(BOLDITALIC);
   fill("blue");
   textSize(24);
-  text("Score: " + score, width - 190, 55);
+  text("Score: " + score, width - 100, 55);
 }
 
 // change level and score display based on player level and increases game difficalty based on player level
@@ -245,7 +264,6 @@ function changeDisplay() {
 function spawnMultipulEnemies() {
   if (enemies.length <= numberOfEnemies && deadEnemies <= numberOfEnemies){
     if (newEnemySpawn.isDone() ) {
-      console.log("new enemy");
       enemies.push(new Enemy (enemyX, enemyY, pathToFollow, cellHeight, cellWidth, enemyHealth));
       newEnemySpawn.reset();
     }
@@ -271,14 +289,10 @@ function spawnMultipulEnemies() {
 // move eneimes on a preset delay
 function moveEnemies() {
   if (isPathFound){
-    if (moveTime.isDone() ) {
+    if (moveTime.isDone()) {
       for(let i = 0; i < enemies.length; i++) {
         if (enemies[i].isEnemyAlive) {
-          for(let i = 0; i < enemies.length; i++) {
-            enemies[i].move();
-            enemies[i].health -= 10;
-            enemies[i].healthDisplay += 10;
-          }
+          enemies[i].move();
           moveTime.reset();
         }
       }
@@ -308,7 +322,7 @@ class Timer {
 }
 
 class Enemy {
-  constructor(x, y, path, height, width, health, healthBarColor) {
+  constructor(x, y, path, height, width, health, array) {
     this.width = width;
     this.height = height;
     this.health = health;
@@ -323,10 +337,13 @@ class Enemy {
     this.healthBarHeight = height / 3;
 
     this.healthDisplay = 0;
+
+    this.enemyArray = array;
   }
 
   // controls enemies movement
   move() {
+    console.log(this.pathLocation);
     this.pathLocation += 1;
     levelPath[this.x][this.y] = 0;
     this.y = this.followPath[this.pathLocation].y;
@@ -378,6 +395,26 @@ class Enemy {
       }
     }
   }
+
+  canonUpdate() {
+    //player movement
+
+    //bullet movement
+    if (guns.length > 0) {
+      for (let i=0; i< guns.length; i++) {
+        guns[i].update();
+        guns[i].display();
+        if ((guns[i].x - (this.x * this.height) <= 0)) {
+          guns[i].spawnBullet();
+          for(let i = 0; i < enemies.length; i++) {
+            enemies[i].health -= 10;
+            enemies[i].healthDisplay += 10;
+          }
+ 
+        } 
+      }
+    }
+  }
 }
 
 // *********************************************************** PATHFINDER ***************************************************************
@@ -396,6 +433,7 @@ class Pathfinder {
   }
   // create and color rects to use when display grid
   displayGrid(color) {
+    rectMode(CORNER);
     strokeWeight(0);
     fill(color);
     if (this.wall) {
@@ -441,13 +479,7 @@ function findPath () {
       currentValue = cellsToCheck[lowestValue]; 
   
       if (currentValue === endingPoint) {
-        endScreenDisplay = "Solution Found";
-        console.log(endScreenDisplay);
-        // enemies.setStartingLocation();
         isPathFound = true;
-        console.log(isPathFound);
-        console.log(path);
-        //screenState = "endScreen";
       }
   
       // remove the value from the cellsToCheck and push it into the cellThatHaveBeenChecked
@@ -481,10 +513,7 @@ function findPath () {
   
     // No Solution
     else {
-      endScreenDisplay = "No Solution Found";
-      console.log(endScreenDisplay);
       isPathFound = true;
-      //screenState = "endScreen";
     }
   }
 }
@@ -520,4 +549,80 @@ function makePathForEnemy() {
     pathToFollow.push(path.pop());
 
   }
+}
+
+// guns
+class Character {
+  constructor(x, y, mouseX, mouseY) {
+    this.x = x;
+    this.y = y;
+    this.mouseX = mouseX;
+    this.mouseY = mouseY;
+    this.size = 25;
+    this.bulletArray = [];
+  }
+
+  display() {
+    fill("black");
+    rectMode(CENTER);
+    rect(this.x + cellWidth/2, this.y + cellHeight/2, this.mouseX, this.mouseY);
+    fill(255, 255, 255, 100);
+    ellipseMode(CENTER);
+    ellipse(this.x + cellWidth/2, this.y + cellHeight/2, cellWidth*3);
+  }
+
+  update() {
+    //bullet movement
+    for (let i=0; i<this.bulletArray.length; i++) {
+      this.bulletArray[i].moveUp();
+      this.bulletArray[i].display();
+    }
+  }
+
+  spawnBullet() {
+    if (bulletTime.isDone()) {
+      this.bulletArray.push(new Bullet(this.x + cellWidth/2, this.y));
+      // console.log("you");
+      bulletTime.reset();
+    }
+  }
+
+}
+
+class Bullet {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.dy = -5;
+    this.dx = -5;
+  }
+
+  moveUp() {
+    this.y += this.dy;
+  }
+  moveDown() {
+    this.y -= this.dy;
+  }
+  moveRight() {
+    this.y -= this.dx;
+  }
+  moveLeft() {
+    this.y += this.dx;
+  }
+
+  display() {
+    fill("red");
+    noStroke();
+    circle(this.x, this.y, 5);
+    // console.log("bullet");
+  }
+}
+
+function gameOver() {
+  //controls the game over screen text, its style, location, and size
+  textAlign(CENTER);
+  textSize(18);
+  text("Game Over", width / 2, height / 2);
+  text("Your Score was " + score, width / 2, height / 2 + 20);
+  text("High Score is " + highScore, width / 2, height / 2 + 20);
 }
